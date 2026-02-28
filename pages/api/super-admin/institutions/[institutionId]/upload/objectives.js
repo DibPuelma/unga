@@ -22,6 +22,19 @@ function cleanObjectiveName(name) {
   return name.trim().replace(/^\d+[.,]?\d*[\s.\-)\/]*\s*/i, '').trim();
 }
 
+function countMojibakeMarkers(text) {
+  if (!text) return 0;
+  const matches = text.match(/[ÃÂâ�]/g);
+  return matches ? matches.length : 0;
+}
+
+function fixPotentialMojibake(value) {
+  if (value === null || value === undefined) return '';
+  const original = value.toString();
+  const repaired = Buffer.from(original, 'latin1').toString('utf8');
+  return countMojibakeMarkers(repaired) < countMojibakeMarkers(original) ? repaired : original;
+}
+
 /**
  * Calculates Levenshtein distance between two strings
  */
@@ -63,18 +76,103 @@ function normalizeTextForComparison(text) {
   if (!text) return '';
   
   // First clean using the objective name cleaning function
-  let normalized = cleanObjectiveName(text);
+  let normalized = cleanObjectiveName(fixPotentialMojibake(text));
   
   // Normalize whitespace: replace multiple spaces/tabs/newlines with single space
   normalized = normalized.replace(/\s+/g, ' ');
+
+  // Normalize apostrophe-like chars and remove diacritics
+  normalized = normalized
+    .replace(/[\u00B4`'’‘]/g, '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+
+  // Remove punctuation/symbols
+  normalized = normalized.replace(/[^a-zA-Z0-9\s]/g, ' ');
   
   // Remove leading/trailing whitespace
-  normalized = normalized.trim();
+  normalized = normalized.replace(/\s+/g, ' ').trim();
   
   // Convert to lowercase for case-insensitive comparison
   normalized = normalized.toLowerCase();
   
   return normalized;
+}
+
+function normalizeTextForLookup(text) {
+  if (!text) return '';
+  return fixPotentialMojibake(text)
+    .replace(/[\u00B4`'’‘]/g, '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-zA-Z0-9\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase();
+}
+
+function singularizeToken(token) {
+  if (!token) return token;
+  if (token.length > 4 && token.endsWith('es')) return token.slice(0, -2);
+  if (token.length > 3 && token.endsWith('s')) return token.slice(0, -1);
+  return token;
+}
+
+function normalizeCoreNameForLookup(text) {
+  const normalized = normalizeTextForLookup(text);
+  if (!normalized) return '';
+
+  return normalized
+    .split(' ')
+    .map((token) => singularizeToken(token))
+    .join(' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function findBestMatchingEntity(searchName, entities, options = {}) {
+  const {
+    minSimilarity = 0.9,
+    useSingular = false,
+  } = options;
+
+  if (!searchName || !entities || entities.length === 0) return null;
+
+  const normalizedInput = normalizeTextForLookup(searchName);
+  const normalizedInputSingular = useSingular ? normalizeCoreNameForLookup(searchName) : '';
+  if (!normalizedInput) return null;
+
+  const exactMatch = entities.find((entity) => {
+    const normalizedEntity = normalizeTextForLookup(entity.name);
+    if (normalizedEntity === normalizedInput) return true;
+    if (useSingular) {
+      return normalizeCoreNameForLookup(entity.name) === normalizedInputSingular;
+    }
+    return false;
+  });
+  if (exactMatch) return exactMatch;
+
+  let bestMatch = null;
+  let bestSimilarity = 0;
+
+  for (const entity of entities) {
+    const normalizedEntity = normalizeTextForLookup(entity.name);
+    let similarity = calculateSimilarity(normalizedInput, normalizedEntity);
+
+    if (useSingular) {
+      similarity = Math.max(
+        similarity,
+        calculateSimilarity(normalizedInputSingular, normalizeCoreNameForLookup(entity.name))
+      );
+    }
+
+    if (similarity > bestSimilarity) {
+      bestSimilarity = similarity;
+      bestMatch = entity;
+    }
+  }
+
+  return bestSimilarity >= minSimilarity ? bestMatch : null;
 }
 
 /**
@@ -127,6 +225,18 @@ function findBestMatchingCurricularObjective(searchName, curricularObjectives) {
   }
 
   return bestMatch;
+}
+
+function buildObjectiveUniquenessKey({ name, coreId, levelIds, classroomIds }) {
+  const normalizedName = normalizeTextForComparison(name);
+  const normalizedLevelIds = levelIds && levelIds.length > 0
+    ? [...new Set(levelIds)].sort().join(',')
+    : 'null';
+  const normalizedClassroomIds = classroomIds && classroomIds.length > 0
+    ? [...new Set(classroomIds)].sort().join(',')
+    : 'null';
+
+  return `${coreId}::${normalizedName}::${normalizedLevelIds}::${normalizedClassroomIds}`;
 }
 
 export default async function handler(req, res) {
@@ -184,6 +294,22 @@ export default async function handler(req, res) {
     const allCurricularObjectives = await prisma.curricularObjectives.findMany({
       where: { institutionId },
     });
+    const existingObjectives = await prisma.objectives.findMany({
+      where: {
+        deletedAt: null,
+        Cores: {
+          institutionId,
+        },
+      },
+      include: {
+        ObjectiveLevels: {
+          include: {
+            Levels: true,
+          },
+        },
+        Classes: true,
+      },
+    });
 
     const results = {
       successful: [],
@@ -191,6 +317,15 @@ export default async function handler(req, res) {
     };
 
     const objectivesToCreate = [];
+    const queuedObjectiveKeys = new Set();
+    const existingObjectiveKeys = new Set(
+      existingObjectives.map((objective) => buildObjectiveUniquenessKey({
+        name: objective.name,
+        coreId: objective.coreId,
+        levelIds: objective.ObjectiveLevels.map((ol) => ol.Levels.id),
+        classroomIds: objective.Classes.map((c) => c.id),
+      }))
+    );
 
     for (let i = 0; i < rows.length; i++) {
       const row = rows[i];
@@ -208,9 +343,11 @@ export default async function handler(req, res) {
         }
 
         // Clean objective name (remove numeric prefixes)
-        const cleanedName = cleanObjectiveName(row.name);
+        const cleanedName = cleanObjectiveName(fixPotentialMojibake(row.name));
 
-        if (!row.coreName || !row.coreName.trim()) {
+        const rawCoreName = fixPotentialMojibake(row.coreName);
+
+        if (!rawCoreName || !rawCoreName.trim()) {
           results.failed.push({
             row: rowNumber,
             name: cleanedName || '',
@@ -219,16 +356,17 @@ export default async function handler(req, res) {
           continue;
         }
 
-        // Find core by name
-        const core = cores.find(
-          (c) => c.name.toLowerCase() === row.coreName.trim().toLowerCase()
-        );
+        // Find core by name with fuzzy support for subtle differences
+        const core = findBestMatchingEntity(rawCoreName, cores, {
+          minSimilarity: 0.82,
+          useSingular: true,
+        });
 
         if (!core) {
           results.failed.push({
             row: rowNumber,
             name: cleanedName || '',
-            error: `Núcleo "${row.coreName}" no encontrado`,
+            error: `Núcleo "${rawCoreName}" no encontrado`,
           });
           continue;
         }
@@ -236,10 +374,20 @@ export default async function handler(req, res) {
         // Parse levels if provided
         let levelIds = [];
         if (row.levelNames && row.levelNames.trim()) {
-          const levelNames = row.levelNames.split(',').map((name) => name.trim());
-          levelIds = allLevels
-            .filter((l) => levelNames.some((name) => l.name.toLowerCase() === name.toLowerCase()))
-            .map((l) => l.id);
+          const levelNames = fixPotentialMojibake(row.levelNames)
+            .split(',')
+            .map((name) => name.trim())
+            .filter((name) => name);
+
+          const matchedLevels = [];
+          for (const levelName of levelNames) {
+            const matchedLevel = findBestMatchingEntity(levelName, allLevels, { minSimilarity: 0.88 });
+            if (matchedLevel) {
+              matchedLevels.push(matchedLevel);
+            }
+          }
+
+          levelIds = [...new Set(matchedLevels.map((l) => l.id))];
           
           if (levelIds.length === 0) {
             results.failed.push({
@@ -254,18 +402,24 @@ export default async function handler(req, res) {
         // Parse classrooms if provided (can be provided alongside levels)
         let classroomIds = [];
         if (row.classroomNames && row.classroomNames.trim()) {
-          const classroomNames = row.classroomNames.split(',').map((name) => name.trim());
-          classroomIds = classrooms
-            .filter((c) => classroomNames.some((name) => c.name.toLowerCase() === name.toLowerCase()))
-            .map((c) => c.id);
-          
-          // Validate that all provided classroom names were found
-          const foundClassroomNames = classrooms
-            .filter((c) => classroomNames.some((name) => c.name.toLowerCase() === name.toLowerCase()))
-            .map((c) => c.name);
-          const notFoundClassrooms = classroomNames.filter(
-            (name) => !foundClassroomNames.some((found) => found.toLowerCase() === name.toLowerCase())
-          );
+          const classroomNames = fixPotentialMojibake(row.classroomNames)
+            .split(',')
+            .map((name) => name.trim())
+            .filter((name) => name);
+
+          const matchedClassrooms = [];
+          const notFoundClassrooms = [];
+
+          for (const classroomName of classroomNames) {
+            const matchedClassroom = findBestMatchingEntity(classroomName, classrooms, { minSimilarity: 0.88 });
+            if (matchedClassroom) {
+              matchedClassrooms.push(matchedClassroom);
+            } else {
+              notFoundClassrooms.push(classroomName);
+            }
+          }
+
+          classroomIds = [...new Set(matchedClassrooms.map((c) => c.id))];
           
           if (notFoundClassrooms.length > 0) {
             results.failed.push({
@@ -290,7 +444,7 @@ export default async function handler(req, res) {
         // Handle curricular objective matching if provided
         let curricularObjectiveId = null;
         if (row.curricularObjectiveName && row.curricularObjectiveName.trim()) {
-          const cleanedCurricularObjectiveName = cleanObjectiveName(row.curricularObjectiveName);
+          const cleanedCurricularObjectiveName = cleanObjectiveName(fixPotentialMojibake(row.curricularObjectiveName));
           const matchingCurricularObjective = findBestMatchingCurricularObjective(
             cleanedCurricularObjectiveName,
             allCurricularObjectives
@@ -307,6 +461,24 @@ export default async function handler(req, res) {
             continue;
           }
         }
+
+        const objectiveUniquenessKey = buildObjectiveUniquenessKey({
+          name: cleanedName,
+          coreId: core.id,
+          levelIds,
+          classroomIds,
+        });
+
+        if (existingObjectiveKeys.has(objectiveUniquenessKey) || queuedObjectiveKeys.has(objectiveUniquenessKey)) {
+          results.failed.push({
+            row: rowNumber,
+            name: cleanedName || '',
+            error: 'Objetivo duplicado (mismo nombre, niveles y salas), omitido',
+          });
+          continue;
+        }
+
+        queuedObjectiveKeys.add(objectiveUniquenessKey);
 
           objectivesToCreate.push({
             name: cleanedName,

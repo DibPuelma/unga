@@ -111,7 +111,7 @@ function UploadSection({ title, uploadEndpoint, templateEndpoint, institutionId 
           Seleccionar Archivo
           <input
             type="file"
-            accept=".xlsx,.xls"
+            accept=".xlsx,.xls,.csv,text/csv"
             onChange={handleFileChange}
             style={{ display: 'none' }}
             id={`file-input-${uploadEndpoint}`}

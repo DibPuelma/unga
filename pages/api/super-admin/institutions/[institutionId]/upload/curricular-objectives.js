@@ -34,6 +34,156 @@ function cleanCurricularObjectiveName(name) {
   return cleaned;
 }
 
+function countMojibakeMarkers(text) {
+  if (!text) return 0;
+  const matches = text.match(/[ÃÂâ�ÿþ]/g);
+  return matches ? matches.length : 0;
+}
+
+function countReplacementChars(text) {
+  if (!text) return 0;
+  const matches = text.match(/�/g);
+  return matches ? matches.length : 0;
+}
+
+function scoreTextQuality(text) {
+  // Lower score means cleaner/more human-readable text.
+  return countMojibakeMarkers(text) * 10 + countReplacementChars(text) * 100;
+}
+
+function fixPotentialMojibake(value) {
+  if (value === null || value === undefined) return '';
+  const original = value.toString();
+  let best = original;
+  let candidate = original;
+  let bestScore = scoreTextQuality(original);
+
+  // Some CSV/XLS exports arrive double-encoded (e.g. "ÃƒÂ³"), so try multiple repair passes.
+  for (let i = 0; i < 3; i++) {
+    candidate = Buffer.from(candidate, 'latin1').toString('utf8');
+    const candidateScore = scoreTextQuality(candidate);
+    if (candidateScore < bestScore) {
+      best = candidate;
+      bestScore = candidateScore;
+    } else {
+      break;
+    }
+  }
+
+  return best;
+}
+
+function normalizeTextForLookup(value) {
+  const fixed = fixPotentialMojibake(value);
+  return fixed
+    .replace(/[\u00B4`'’‘]/g, '') // normalize apostrophe-like chars and acute accents
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '') // remove diacritics
+    .replace(/[^a-zA-Z0-9\s]/g, ' ') // remove punctuation/symbols
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase();
+}
+
+function singularizeToken(token) {
+  if (!token) return token;
+  if (token.length > 4 && token.endsWith('es')) return token.slice(0, -2);
+  if (token.length > 3 && token.endsWith('s')) return token.slice(0, -1);
+  return token;
+}
+
+function normalizeCoreNameForLookup(value) {
+  const normalized = normalizeTextForLookup(value);
+  if (!normalized) return '';
+
+  return normalized
+    .split(' ')
+    .map((token) => singularizeToken(token))
+    .join(' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function levenshteinDistance(str1, str2) {
+  const s1 = str1 || '';
+  const s2 = str2 || '';
+  const len1 = s1.length;
+  const len2 = s2.length;
+
+  const matrix = Array.from({ length: len1 + 1 }, () => Array(len2 + 1).fill(0));
+
+  for (let i = 0; i <= len1; i++) matrix[i][0] = i;
+  for (let j = 0; j <= len2; j++) matrix[0][j] = j;
+
+  for (let i = 1; i <= len1; i++) {
+    for (let j = 1; j <= len2; j++) {
+      if (s1[i - 1] === s2[j - 1]) {
+        matrix[i][j] = matrix[i - 1][j - 1];
+      } else {
+        matrix[i][j] = Math.min(
+          matrix[i - 1][j] + 1,
+          matrix[i][j - 1] + 1,
+          matrix[i - 1][j - 1] + 1
+        );
+      }
+    }
+  }
+
+  return matrix[len1][len2];
+}
+
+function calculateSimilarity(str1, str2) {
+  if (!str1 && !str2) return 1;
+  if (!str1 || !str2) return 0;
+  if (str1 === str2) return 1;
+
+  const maxLength = Math.max(str1.length, str2.length);
+  if (maxLength === 0) return 1;
+
+  const distance = levenshteinDistance(str1, str2);
+  return 1 - (distance / maxLength);
+}
+
+function findBestMatchingCore(rawCoreName, cores) {
+  const normalizedInput = normalizeTextForLookup(rawCoreName);
+  const normalizedInputSingular = normalizeCoreNameForLookup(rawCoreName);
+
+  if (!normalizedInput || !cores || cores.length === 0) return null;
+
+  // First try exact normalized matches
+  const exactMatch = cores.find((core) => {
+    const coreNormalized = normalizeTextForLookup(core.name);
+    const coreNormalizedSingular = normalizeCoreNameForLookup(core.name);
+    return (
+      coreNormalized === normalizedInput ||
+      coreNormalizedSingular === normalizedInputSingular
+    );
+  });
+
+  if (exactMatch) return exactMatch;
+
+  // Then fallback to fuzzy matching for subtle wording differences.
+  let bestCore = null;
+  let bestScore = 0;
+
+  for (const core of cores) {
+    const coreNormalized = normalizeTextForLookup(core.name);
+    const coreNormalizedSingular = normalizeCoreNameForLookup(core.name);
+
+    const score = Math.max(
+      calculateSimilarity(normalizedInput, coreNormalized),
+      calculateSimilarity(normalizedInputSingular, coreNormalizedSingular)
+    );
+
+    if (score > bestScore) {
+      bestScore = score;
+      bestCore = core;
+    }
+  }
+
+  return bestScore >= 0.82 ? bestCore : null;
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ message: 'Método no permitido' });
@@ -105,7 +255,7 @@ export default async function handler(req, res) {
         }
 
         // Clean curricular objective name (remove numeric prefixes, quotes, newlines)
-        const name = cleanCurricularObjectiveName(row.name);
+        const name = cleanCurricularObjectiveName(fixPotentialMojibake(row.name));
         
         // Validate that name is not empty after cleaning
         if (!name || !name.trim()) {
@@ -118,7 +268,9 @@ export default async function handler(req, res) {
         }
 
         // Validate coreName is provided
-        if (!row.coreName || !row.coreName.trim()) {
+        const rawCoreName = fixPotentialMojibake(row.coreName);
+
+        if (!rawCoreName || !rawCoreName.trim()) {
           results.failed.push({
             row: rowNumber,
             name: name,
@@ -127,43 +279,57 @@ export default async function handler(req, res) {
           continue;
         }
 
-        // Find core by name
-        const core = cores.find(
-          (c) => c.name.toLowerCase() === row.coreName.trim().toLowerCase()
-        );
+        // Find core by name, allowing subtle differences (e.g. singular/plural)
+        const core = findBestMatchingCore(rawCoreName, cores);
 
         if (!core) {
           results.failed.push({
             row: rowNumber,
             name: name,
-            error: `Núcleo "${row.coreName}" no encontrado`,
+            error: `Núcleo "${rawCoreName}" no encontrado`,
           });
           continue;
         }
         
-        const country = row.country?.trim() || null;
-        const methodology = row.methodology?.trim() || null;
+        const country = fixPotentialMojibake(row.country)?.trim() || null;
+        const methodology = fixPotentialMojibake(row.methodology)?.trim() || null;
 
         // Parse levels if provided
         let levelIds = null; // null means don't update levels, [] means clear levels
         if (row.levels !== undefined && row.levels !== null) {
-          const levelsValue = row.levels.toString().trim();
+          const levelsValue = fixPotentialMojibake(row.levels).toString().trim();
           if (levelsValue === '') {
             // Empty string means clear all levels
             levelIds = [];
           } else {
             // Parse level names
-            const levelNames = levelsValue.split(',').map((name) => name.trim()).filter(name => name);
+            const levelNames = levelsValue
+              .split(',')
+              .map((levelName) => fixPotentialMojibake(levelName).trim())
+              .filter((levelName) => levelName);
             levelIds = allLevels
-              .filter((l) => levelNames.some((name) => l.name.toLowerCase() === name.toLowerCase()))
+              .filter((l) =>
+                levelNames.some(
+                  (levelName) =>
+                    normalizeTextForLookup(l.name) === normalizeTextForLookup(levelName)
+                )
+              )
               .map((l) => l.id);
             
             // Check if any levels were not found
             const foundLevelNames = allLevels
-              .filter((l) => levelNames.some((name) => l.name.toLowerCase() === name.toLowerCase()))
+              .filter((l) =>
+                levelNames.some(
+                  (levelName) =>
+                    normalizeTextForLookup(l.name) === normalizeTextForLookup(levelName)
+                )
+              )
               .map((l) => l.name);
             const notFoundLevels = levelNames.filter(
-              (name) => !foundLevelNames.some((found) => found.toLowerCase() === name.toLowerCase())
+              (levelName) =>
+                !foundLevelNames.some(
+                  (found) => normalizeTextForLookup(found) === normalizeTextForLookup(levelName)
+                )
             );
             
             if (notFoundLevels.length > 0 && levelIds.length === 0) {
