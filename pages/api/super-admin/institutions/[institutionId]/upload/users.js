@@ -76,6 +76,45 @@ export default async function handler(req, res) {
           continue;
         }
 
+        const email = row.email.trim();
+
+        // Check if user already exists
+        const existingUser = await prisma.users.findUnique({
+          where: { email },
+        });
+
+        if (existingUser) {
+          // User exists, check if classrooms need to be associated
+          let classroomIds = [];
+          if (row.classrooms) {
+            const classroomNames = row.classrooms.split(',').map((name) => name.trim());
+            classroomIds = classrooms
+              .filter((c) => classroomNames.some((name) => c.name.toLowerCase() === name.toLowerCase()))
+              .map((c) => c.id);
+          }
+
+          // Merge new classrooms with existing ones (avoid duplicates)
+          if (classroomIds.length > 0) {
+            const existingClassrooms = existingUser.classrooms || [];
+            const mergedClassrooms = [...new Set([...existingClassrooms, ...classroomIds])];
+            
+            // Only update if there are new classrooms to add
+            if (mergedClassrooms.length > existingClassrooms.length) {
+              await prisma.users.update({
+                where: { id: existingUser.id },
+                data: { classrooms: mergedClassrooms },
+              });
+            }
+          }
+
+          results.successful.push({
+            row: rowNumber,
+            email: existingUser.email,
+            message: 'Usuario ya existía, aulas actualizadas si era necesario',
+          });
+          continue;
+        }
+
         // Parse classrooms if provided
         let classroomIds = [];
         if (row.classrooms) {
@@ -87,7 +126,7 @@ export default async function handler(req, res) {
 
         // Create user
         const user = await createUser({
-          email: row.email.trim(),
+          email,
           firstName: row.firstName?.trim() || null,
           lastName: row.lastName?.trim() || null,
           role: row.role?.trim() || null,
