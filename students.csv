@@ -1,0 +1,284 @@
+firstName,lastName,rut,birthDate,classroomName
+Pascual Mateo,Campos Carrillo,28.967.752-6,2025-08-04,Sala Cuna Menor
+Santino Armando,Marambio Troncoso,29.053.784-3,2025-10-16,Sala Cuna Menor
+Liam André,Medina Solano,28.883.758-9,2025-05-30,Sala Cuna Menor
+Colomba Ignacia,Mera Alegría,28.916.728-5,2025-06-27,Sala Cuna Menor
+Leonor Trinidad,Oyarce Álvarez,28.881.293-4,2025-05-28,Sala Cuna Menor
+Monserrat Antonella,Toro Aguilar,28.980.890-6,2025-08-14,Sala Cuna Menor
+Kaylani Arleth,Villegas Campos,28.999.703-2,2025-08-31,Sala Cuna Menor
+Lucas Ignacio,Barrera Necuñir,28.544.735-6,2024-09-09,Sala Cuna Mayor A
+Mateo Asher,Fica Huenchún,28.579.066-2,2024-10-27,Sala Cuna Mayor A
+Ashley Ainara,Fuentes Chavarria,28.716.726-1,2025-02-18,Sala Cuna Mayor A
+Florencia Anahís,Gutiérrez Cayumán,28.757.778-8,2025-03-15,Sala Cuna Mayor A
+Jorge Alonso,Herraz Gallardo,28.549.090-1,2024-09-24,Sala Cuna Mayor A
+Renata Paz Ignacia,Magaña Mansilla,28.758.490-3,2025-03-14,Sala Cuna Mayor A
+Vicente Antuan,Pereira Cárdenas,28.743.024-8,2025-03-08,Sala Cuna Mayor A
+Gaspar Alonso,Solano Delgado,28.672.237-7,2024-12-28,Sala Cuna Mayor A
+Amy Antonia,Soto Llontop,28.566.766-6,2024-10-10,Sala Cuna Mayor A
+Facundo Ignacio,Vargas Ibáñez,28.686.195-4,2025-01-23,Sala Cuna Mayor A
+Lucas Baltazar,Vejar Bascur,28.600.541-1,2024-11-13,Sala Cuna Mayor A
+Nicolás,Vilches Alcalde,28.541.602-7,2024-09-13,Sala Cuna Mayor A
+Cathaleya Ignacia,Aguilar Toro,28.479.897-K,2024-06-04,Sala Cuna Mayor B
+Agustín Nicolás,Almarza Fones,28.489.574-6,2024-07-18,Sala Cuna Mayor B
+Helena,Campos Rodríguez,28.450.889-0,2024-06-01,Sala Cuna Mayor B
+Lía Tatiana,López Quevedo,28.493.989-4,2024-07-23,Sala Cuna Mayor B
+Brenda Antonella,Mendez Araya,28.504.427-8,2024-07-25,Sala Cuna Mayor B
+Aslan Valentín,Miranda Gil,28.487.411-0,2024-07-12,Sala Cuna Mayor B
+Román Valentino,Palma Zavala,28.453.255-4,2024-06-03,Sala Cuna Mayor B
+Lía Ignacia,Villegas Olivares,28.489.568-1,2024-06-14,Sala Cuna Mayor B
+Ida Martina Ignacia,Zamora Ibarra,28.487.434-k,2024-07-12,Sala Cuna Mayor B
+Mateo Ignacio,Arancibia Núñez,28.412.840-0,2024-04-19,Sala Cuna Mayor C
+Clara Dominga,Espinoza Saavedra,28.428.236-1,2024-05-07,Sala Cuna Mayor C
+Emily Valentina,Godoy Vargas,28.426.667-6,2024-05-07,Sala Cuna Mayor C
+Lía Isidora,Hernández Salazar,28.403.604-2,2024-04-10,Sala Cuna Mayor C
+Alina Aylen,Huarino Quispe,28.419.273-7,2024-04-25,Sala Cuna Mayor C
+Ithan Daniel,Infante Cádiz,28.439.678-2,2024-05-14,Sala Cuna Mayor C
+Ignacia Antonela,Navarro Acuña,28.432.052-2,2024-05-06,Sala Cuna Mayor C
+Giuliano Agustín,Otárola Martínez,28.409.947-8,2024-04-08,Sala Cuna Mayor C
+Clemente León,Pérez Guevara,28.394.716-5,2024-04-01,Sala Cuna Mayor C
+Alison Almendra,Rivas Balladares,28.444.026-9,2024-05-18,Sala Cuna Mayor C
+Thiago Ignacio,Rojas González,28.444.549-K,2024-05-25,Sala Cuna Mayor C
+Dominga Emilia,Sepúlveda Díaz,28.431.469-7,2024-05-12,Sala Cuna Mayor C
+Josefa Isabel,Silva Jaramillo,28.426.253-0,2024-05-05,Sala Cuna Mayor C
+Aurora Ignacia,Vásquez Sanzo,28.397.115-5,2024-04-30,Sala Cuna Mayor C
+Lorenzo,Adasme Sanhueza,28.310.827-9,2023-12-14,Medio Menor A
+Santi Ignacio,Alarcón Valderrama,28.281.140-5,2023-11-07,Medio Menor A
+Gabriel Leonardo,Araya Pavez,28.277.937-4,2023-11-03,Medio Menor A
+Leonor Antonia,Beltrán Jaque,28.374.004-8,2024-03-04,Medio Menor A
+Kaleth Santiago,Burgos Lozano,28.262.989-5,2023-10-02,Medio Menor A
+Priscilla Amelia,Chávez Farías,28.368.343-5,2024-02-22,Medio Menor A
+Luciano Misael,Cuevas Diaz,28.259.363-7,2023-10-10,Medio Menor A
+María Jesús,Fuentes Navarro,28.343.432-K,2024-01-19,Medio Menor A
+Eliz Alejandra,González Villaseca,28.340.046-8,2024-01-22,Medio Menor A
+Vicente Andrés,Lupi Toiran,28.364.736-6,2024-02-22,Medio Menor A
+Gael Enrique,Madrid Leiva,28.267.701-6,2023-10-19,Medio Menor A
+Valentino Gael,Montecinos Pereira,28.339.956-7,2024-02-17,Medio Menor A
+Aitana Catalina,Moro Zagarra,28.316.196-k,2023-12-18,Medio Menor A
+Agustina Ignacia,Moya Vargas,28.363.404-3,2024-02-22,Medio Menor A
+Emma Hailee,Pacheco Becerra,28.379.981-6,2024-03-13,Medio Menor A
+Jesús Emilio,Perez Melendez,28.374.116-8,2024-02-24,Medio Menor A
+Antonella Pascal,Pino Fuentes,28.384.907-4,2024-03-16,Medio Menor A
+Emma Sophia,Prado Sepúlveda,28.296.424-4,2023-11-23,Medio Menor A
+Vicente André,Rebolledo Landero,28.330.846-4,2024-01-08,Medio Menor A
+Tomás,Robert Canales,28.379.460-1,2024-03-13,Medio Menor A
+Clemente Valentino,Santana Santana,28.325.648-0,2023-12-30,Medio Menor A
+Lucas Santiago,Salazar Vergara,28.242.854-7,2023-09-15,Medio Menor A
+Catalina Josefina,Sepúlveda Bascour,28.320.068-K,2023-12-27,Medio Menor A
+Azeneth,Soto Moralez,28.342.006-K,2024-01-20,Medio Menor A
+Milan,Villegas Loyola,28.301.261-1,2023-11-26,Medio Menor A
+Victoria Estrella,Guajardo Delgado,28.365.626-8,2024-02-23,Medio Menor A
+Santino Alessandro,Lopetegui Ponce,28.372.939-7,2024-02-29,Medio Menor A
+Daianna Fiorella,Placencia Contreras,28.352.884-7,2024-02-06,Medio Menor A
+León Alexander,Vicencio Carter,28.311.630-1,2023-12-12,Medio Menor A
+Isabella Esmeralda,Arriagada Levín,28.259.858-2,2023-10-04,Medio Menor B
+Emma Sophia,Arteaga Valencia,28.270.873-6,2023-10-23,Medio Menor B
+Pascuala Alicia,Bravo Riquelme,28.192.096-0,2023-07-09,Medio Menor B
+Pascal Alejandra,Díaz Retamal,28.201.073-9,2023-07-26,Medio Menor B
+Catalina Lucía,Doña Valenzuela,28.228.606-8,2023-08-27,Medio Menor B
+Magdalena Isidora,Etcheverry Herrera,28.181.580-6,2023-06-20,Medio Menor B
+Emma Lucia,Faúndez Beltrán,28.190.365-9,2023-07-10,Medio Menor B
+Sol Katalina,Gonzalez Arriagada,28.252.370-1,2023-09-27,Medio Menor B
+Sofia Valentina,Gonzalez Martínez,28.210.600-0,2023-07-30,Medio Menor B
+Sofía Emilia,Gutiérrez Vivanco,28.122.882-K,2023-08-04,Medio Menor B
+Victoria Ester Ignacia,Huaiquiñir Barrera,28.208.091-5,2023-07-31,Medio Menor B
+Olivia Andrea Nohemí,Ibáñez Almonacid,28.194.109-7,2023-07-14,Medio Menor B
+Dominga,Lara Contreras,28.252.229-2,2023-09-30,Medio Menor B
+Cataleya Zoe,Luyo Najera,28.214.926-5,2023-08-07,Medio Menor B
+Agustin Andres,Mera Alegría,28.200.823-8,2023-07-27,Medio Menor B
+Agustín Andrés,Molina Henríquez,28.243.950-6,2023-09-17,Medio Menor B
+Lucas Javier,Moris Henríquez,28.251.509-1,2023-09-25,Medio Menor B
+Meghan Angelíne,Osorio Apaza,28.239.314-K,2023-09-09,Medio Menor B
+Santiago Baltazar,Pino Arce,28.182.468-6,2023-06-29,Medio Menor B
+Amparo Catalina,Ponce Viveros,28.203.745-9,2023-07-28,Medio Menor B
+Valentina Sofía,Prado Ortega,28.252.687-5,2023-09-28,Medio Menor B
+Vicente Gabriel,Ramírez González,28.254.491-1,2023-10-01,Medio Menor B
+Maite Ayleén,Sepulveda Arriagada,28.274.323-K,2023-11-01,Medio Menor B
+Gianluca Alessandro,Tirado Peña,28.200.362-7,2023-07-23,Medio Menor B
+Fabio Aleix,Vallejo Alban,28.218.469-9,2023-08-06,Medio Menor B
+Ariadne Arlet,Abarca Quintanilla,28.232.597-7,2023-09-02,Medio Menor B
+Alonso Ignacio,Carrasco Gutiérrez,28.274.580-1,2023-10-29,Medio Menor B
+Benjamín Ignacio,Milla Yévenes,28.239.063-9,2023-09-06,Medio Menor B
+Enzo Andrés,Briones Rodríguez,28.120.845-4,2023-04-11,Medio Menor C
+Renata Ignacia,Cárdenas López,28.141.496-8,2023-05-07,Medio Menor C
+León Alejandro,Cartes Apaza,28.198.208-7,2023-07-23,Medio Menor C
+Julieta Alejandra,Castro Contreras,28.175.291-K,2023-06-16,Medio Menor C
+Ayla Cataleya,Cofré Quezada,28.125.212-7,2023-04-14,Medio Menor C
+Emma Soledad,Diaz Cabos,28.145.864-7,2023-05-15,Medio Menor C
+Sol,Durán Leal,28.116.203-9,2023-04-04,Medio Menor C
+Leina Dayana,Espinoza Araya,28.142.648-6,2023-05-10,Medio Menor C
+Olivia Josefina,Gutiérrez Vivanco,28.122.899-4,2023-04-08,Medio Menor C
+Mateo Andrés,Jaque Aguirre,28.071.174-8,2023-02-02,Medio Menor C
+Sara Colomba,Lagos Márquez,28.119.886-6,2023-04-10,Medio Menor C
+Amparo Ignacia,Leyton Gonzalez,28.127.130-K,2023-04-17,Medio Menor C
+Matilde Amelie,Maureira Espinoza,28.163.784-3,2023-06-06,Medio Menor C
+Gerónimo Daniel,Molina Rojas,28.188.965-6,2023-07-07,Medio Menor C
+Florencia Cataleia,Morales Rodríguez,28.147.706-4,2023-05-09,Medio Menor C
+Damian Ernesto,Nahuelcoy Coimbra,28.131.398-3,2023-04-23,Medio Menor C
+Clemente León,Núñez Leyton,28.110.463-2,2023-04-01,Medio Menor C
+Mía Julieta Paz,Osses González,28.115.455-9,2023-04-03,Medio Menor C
+Matías Baltazar,Prado Espinoza,28.153.402-5,2023-05-23,Medio Menor C
+Amanda Pascal,Salinas Ortiz,28.173.355-9,2023-06-12,Medio Menor C
+Samantha Isidora,Sanmartin Valdés,28.116.887-8,2023-04-05,Medio Menor C
+Alonso Javier,Soza Villavicencio,28.129.439-3,2023-04-19,Medio Menor C
+Simón Francisco,Trujillo Ormazábal,28.126.004-9,2023-04-18,Medio Menor C
+Miriam Elizabeth,Vargas Contreras,28.288.561-1,2023-06-01,Medio Menor C
+Emiliano Daniel,Veas Alvarado,28.140.432-6,2023-05-08,Medio Menor C
+Javier Ignacio,Vidal Muñoz,28.173.501-2,2023-06-14,Medio Menor C
+Domingo,Vilches Alcalde,28.114.840-0,2023-04-05,Medio Menor C
+Mía Belén,Villegas Flores,28.115.860-0,2023-04-08,Medio Menor C
+Guillermo,Johnson Aedo,28.181.209-2,2023-06-27,Medio Menor C
+Ethan Aaron,Barbera Femayor,28.037.900-k,2022-12-07,Medio Mayor A
+Francisco León,Bucarey Herrera,27.977.620-8,2022-11-06,Medio Mayor A
+Ivana,Contreras Amaya,28.039.432-7,2023-01-02,Medio Mayor A
+Estela Aurora,Donoso Ortiz,28.052.564-2,2023-01-21,Medio Mayor A
+Dominga Tamara,Espinoza Lazo,28.096.211-2,2023-03-06,Medio Mayor A
+Thomas Andrés,Gajardo Carcamo,28.055.792-7,2023-01-16,Medio Mayor A
+José Miguel,Garrido Cofré,27.988.250-4,2022-11-19,Medio Mayor A
+Serena Anaís,Gonzalez Gutiérrez,27.783.737-4,2022-05-05,Medio Mayor A
+Emma Antonella,Gutierrez Fuentes,27.991.490-2,2022-11-22,Medio Mayor A
+Oliver Gael,Huanca Huanca,28.038.246-6,2022-12-24,Medio Mayor A
+Piero Josue,Leyton Abello,27.963.482-9,2022-10-09,Medio Mayor A
+Álvaro Javier,López Diaz,27.869.531-K,2022-07-26,Medio Mayor A
+Danna Camila,Lopez Egusquiza,28.001.960-7,2022-12-07,Medio Mayor A
+Renata,Mansilla Cabrera,28.032.184-2,2022-12-27,Medio Mayor A
+Emily Martina,Mansilla Tenorio,28.004.677-9,2022-12-13,Medio Mayor A
+Vicente Nicolas,Morales Ibacache,28.049.580-8,2023-01-20,Medio Mayor A
+Colomba Elizabeth,Muñoz Echeverría,28.112.452-8,2023-03-30,Medio Mayor A
+Facundo,Novoa Améstica,28.087.201-6,2023-03-02,Medio Mayor A
+Felipe,Orellana Robledo,28.043.044-7,2023-01-13,Medio Mayor A
+Florencia Agustina,Polanco Hintuya,28.066.895-8,2023-02-05,Medio Mayor A
+Matheo Ariel,Valencia Ruiz,28.106.984-5,2023-03-16,Medio Mayor A
+Isabel Margarita,Vergara Madrid,27.983.377-5,2022-11-16,Medio Mayor A
+Mateo Alonso,Vilches Barrera,28.041.997-4,2023-01-10,Medio Mayor A
+Gabriel Luciano,Arce Cubillo,28.030.182-5,2022-12-27,Medio Mayor A
+Elías León,Acuña Flores,27.969.689-1,2022-10-25,Medio Mayor B
+Santiago Alonso,Allendes Jaña,27.969.797-9,2022-10-28,Medio Mayor B
+Colomba Antonella,Ávila Bravo,27.976.510-9,2022-11-07,Medio Mayor B
+Martín Elías,Diaz Villalobos,27.944.192-3,2022-10-02,Medio Mayor B
+Sofia Isidora,Henríquez Osses,27.914.916-5,2022-09-02,Medio Mayor B
+Trinidad Cataleya,Herraz Gallardo,27.980.506-2,2022-11-11,Medio Mayor B
+Lyam Santiago,Lemus Lemus,27.959.129-1,2022-10-14,Medio Mayor B
+Anna Luna,Leyton Abello,27.963.479-9,2022-10-09,Medio Mayor B
+Amalia Ignacia,Manquepillán Tobar,27.951.350-9,2022-10-09,Medio Mayor B
+Florencia Ignacia,Mejías Gutiérrez,27.957.343-9,2022-10-16,Medio Mayor B
+Esperanza Carolina,Miranda Gil,27.922.932-0,2022-09-12,Medio Mayor B
+Martina Trinidad,Noguera Zuñiga,27.989.463-4,2022-11-20,Medio Mayor B
+Jesús León,Pinto Moraga,27.962.638-9,2022-10-22,Medio Mayor B
+Nicolás Sebastián,Portugués Leon,27.965.393-9,2022-10-24,Medio Mayor B
+Matías José,Qqueccaño Quispe,27.971.038-K,2022-10-26,Medio Mayor B
+Luciano Santino León,Ramírez Salas,27.936.663-8,2022-09-20,Medio Mayor B
+Karima Arely,Recra Villegas,27.939.068-7,2022-09-26,Medio Mayor B
+Maximiliano,Salvador Salvador,28.024.836-3,2022-12-08,Medio Mayor B
+Raul Alfonso,Soto Vicencio,28.014.187-9,2022-12-22,Medio Mayor B
+Isidora Antonia,Urrutia Bravo,27.965.611-3,2022-10-26,Medio Mayor B
+Vicente Maximiliano,Vega López,27.904.906-3,2022-08-20,Medio Mayor B
+Gabriel Alonso,Vergara Cares,27.938.353-2,2022-09-24,Medio Mayor B
+Baltazar Alejandro,Zapata Chacón,27.958.976-9,2022-10-17,Medio Mayor B
+Luciana Isidora,Araya Albornoz,27.783.458-8,2022-05-07,Medio Mayor C
+Estrella Aylin,Araya Araya,27.876.669-1,2022-07-03,Medio Mayor C
+Francisca Nicolas,Berríos Urra,27.888.657-3,2022-08-10,Medio Mayor C
+Adriel Mateo,Bonifacio Borja,27.793.953-3,2022-05-12,Medio Mayor C
+Gabriela,Cárcamo Muñoz,27.795.294-7,2022-05-13,Medio Mayor C
+Haniel Alejandro,Cruz Bustamante,27.880.180-2,2022-08-04,Medio Mayor C
+Mateo Simón,Delgado Ovalle,27.818.578-8,2022-06-07,Medio Mayor C
+Darel Matias,Delgado Villca,27.929.324-K,2022-09-10,Medio Mayor C
+Vicente Luis,Donoso Ibarra,27.825.429-1,2022-06-13,Medio Mayor C
+León Andrés,Espinosa González,27.774.299-3,2022-04-25,Medio Mayor C
+Emma Luciana,Garrido Delgado,27.819.380-2,2022-06-06,Medio Mayor C
+Martina Andrea,Londoño Saldivar,27.761.788-9,2022-04-08,Medio Mayor C
+Moisés Isaac,Martínez Colileo,27.762.668-3,2022-04-09,Medio Mayor C
+Claudio Andrés,Necuñir Cordovez,27.804.141-7,2022-05-23,Medio Mayor C
+Dylan Doruk,Pineda Guedez,100.221.654-F,2022-07-04,Medio Mayor C
+Abrahám Ignacio,Pinto Fernández,27.796.180-6,2022-05-16,Medio Mayor C
+Noa Aitana,Polo Jama,27.883.484-0,2022-08-11,Medio Mayor C
+Maximiliano Agustín,Quiroga Parada,27.936.699-9,2022-07-12,Medio Mayor C
+Amparo Leonor,Romero Oyarzún,27.889.830-k,2022-08-15,Medio Mayor C
+Amanda Millaray,Salazar Navarrete,27.846.030-4,2022-07-01,Medio Mayor C
+Isidora Constanza,Salazar Valenzuela,27.832.738-K,2022-06-16,Medio Mayor C
+Gabriela Ignacia,Sepúlveda Paredes,27.833.888-6,2022-06-17,Medio Mayor C
+David Ignacio,Toledo Pizarro,27.785.140-7,2022-05-10,Medio Mayor C
+Emma Antonia,Torres Villanueva,27.780.273-2,2022-05-05,Medio Mayor C
+Agustina Suyai Amaranta,Valenzuela Carrasco,27.878.685-4,2022-08-03,Medio Mayor C
+Elisa Amparo,Valenzuela Sanhueza,27.905.127-0,2022-08-23,Medio Mayor C
+Francheska Koral,Villegas Reyes,27.905.530-6,2022-08-26,Medio Mayor C
+Ethan Aaron,Barbera Femayor,28.037.900-k,2022-12-07,Medio Mayor A
+Francisco León,Bucarey Herrera,27.977.620-8,2022-11-06,Medio Mayor A
+Baltazar,Colipán Muñoz,28.072.303-7,2023-02-14,Medio Mayor A
+Ivana,Contreras Amaya,28.039.432-7,2023-01-02,Medio Mayor A
+Haniel Alejandro,Cruz Bustamante,27.880.180-2,2022-08-04,Medio Mayor A
+Darel Matias,Delgado Villca,27.929.324-K,2022-09-10,Medio Mayor A
+Estela Aurora,Donoso Ortiz,28.052.564-2,2023-01-21,Medio Mayor A
+Dominga Tamara,Espinoza Lazo,28.096.211-2,2023-03-06,Medio Mayor A
+Emma Alicia,Fierro Salinas,28.093.072-5,2023-03-09,Medio Mayor A
+Thomas Andrés,Gajardo Carcamo,28.055.792-7,2023-01-16,Medio Mayor A
+José Miguel,Garrido Cofré,27.988.250-4,2022-11-19,Medio Mayor A
+Serena Anaís,Gonzalez Gutiérrez,27.783.737-4,2022-05-05,Medio Mayor A
+Emma Antonella,Gutierrez Fuentes,27.991.490-2,2022-11-22,Medio Mayor A
+Oliver Gael,Huanca Huanca,28.038.246-6,2022-12-24,Medio Mayor A
+Piero Josue,Leyton Abello,27.963.482-9,2022-10-09,Medio Mayor A
+Danna Camila,Lopez Egusquiza,28.001.960-7,2022-12-07,Medio Mayor A
+Renata,Mansilla Cabrera,28.032.184-2,2022-12-27,Medio Mayor A
+Emily Martina,Mansilla Tenorio,28.004.677-9,2022-12-13,Medio Mayor A
+Vicente Nicolas,Morales Ibacache,28.049.580-8,2023-01-20,Medio Mayor A
+Colomba Elizabeth,Muñoz Echeverría,28.112.452-8,2023-03-30,Medio Mayor A
+Facundo,Novoa Améstica,28.087.201-6,2023-03-02,Medio Mayor A
+Felipe,Orellana Robledo,28.043.044-7,2023-01-13,Medio Mayor A
+Florencia Agustina,Polanco Hintuya,28.066.895-8,2023-02-05,Medio Mayor A
+Matheo Ariel,Valencia Ruiz,28.106.984-5,2023-03-16,Medio Mayor A
+Isabel Margarita,Vergara Madrid,27.983.377-5,2022-11-16,Medio Mayor A
+Mateo Alonso,Vilches Barrera,28.041.997-4,2023-01-10,Medio Mayor A
+Elías León,Acuña Flores,27.969.689-1,2022-10-25,Medio Mayor B
+Santiago Alonso,Allendes Jaña,27.969.797-9,2022-10-28,Medio Mayor B
+Colomba Antonella,Ávila Bravo,27.976.510-9,2022-11-07,Medio Mayor B
+Noi Berríos León Antonio,De la,27.991.810-K,2022-10-04,Medio Mayor B
+Martín Elías,Diaz Villalobos,27.944.192-3,2022-10-02,Medio Mayor B
+Sofia Isidora,Henríquez Osses,27.914.916-5,2022-09-02,Medio Mayor B
+Trinidad Cataleya,Herraz Gallardo,27.980.506-2,2022-11-11,Medio Mayor B
+Lyam Santino,Lemus Lemus,27.959.129-1,2022-10-14,Medio Mayor B
+Anna Luna,Leyton Abello,27.963.479-9,2022-10-09,Medio Mayor B
+Amalia Ignacia,Manquepillán Tobar,27.951.350-9,2022-10-09,Medio Mayor B
+Kennedy Clean,Marimon Marimon,27.937.959-4,2022-09-09,Medio Mayor B
+Florencia Ignacia,Mejías Gutiérrez,27.957.343-9,2022-10-16,Medio Mayor B
+Esperanza Carolina,Miranda Gil,27.922.932-0,2022-09-12,Medio Mayor B
+Martina Trinidad,Noguera Zuñiga,27.989.463-4,2022-11-20,Medio Mayor B
+Jesús León,Pinto Moraga,27.962.638-9,2022-10-22,Medio Mayor B
+Nicolás Sebastián,Portugués Leon,27.965.393-9,2022-10-24,Medio Mayor B
+Matías José,Qqueccaño Quispe,27.971.038-K,2022-10-26,Medio Mayor B
+Luciano Santino León,Ramírez Salas,27.936.663-8,2022-09-20,Medio Mayor B
+Karima Arely,Recra Villegas,27.939.068-7,2022-09-26,Medio Mayor B
+Maximiliano,Salvador Salvador,28.024.836-3,2022-12-08,Medio Mayor B
+Raul Alfonso,Soto Vicencio,28.014.187-9,2022-12-22,Medio Mayor B
+Isidora Antonia,Urrutia Bravo,27.965.611-3,2022-10-26,Medio Mayor B
+Vicente Maximiliano,Vega López,27.904.906-3,2022-08-20,Medio Mayor B
+Gabriel Alonso,Vergara Cares,27.938.353-2,2022-09-24,Medio Mayor B
+Aylén Antonia,Vilches Marentis,27.918.856-K,2022-09-10,Medio Mayor B
+Damián Walldo,Vizcarra Vallejos,27.946.177-0,2022-10-05,Medio Mayor B
+Baltazar Alejandro,Zapata Chacón,27.958.976-9,2022-10-17,Medio Mayor B
+Alana Miranda,Acuña Torres,27.833.873-8,2022-06-20,Medio Mayor C
+Luciana Isidora,Araya Albornoz,27.783.458-8,2022-05-07,Medio Mayor C
+Estrella Aylin,Araya Araya,27.876.669-1,2022-07-03,Medio Mayor C
+Francisca Nicolas,Berríos Urra,27.888.657-3,2022-08-10,Medio Mayor C
+Adriel Mateo,Bonifacio Borja,27.793.953-3,2022-05-12,Medio Mayor C
+Gabriela,Cárcamo Muñoz,27.795.294-7,2022-05-13,Medio Mayor C
+Mateo Simón,Delgado Ovalle,27.818.578-8,2022-06-07,Medio Mayor C
+Vicente Luis,Donoso Ibarra,27.825.429-1,2022-06-13,Medio Mayor C
+León Andrés,Espinosa González,27.774.299-3,2022-04-25,Medio Mayor C
+Emma Luciana,Garrido Delgado,27.819.380-2,2022-06-06,Medio Mayor C
+Martina Andrea,Londoño Saldivar,27.761.788-9,2022-04-08,Medio Mayor C
+Álvaro Javier,López Diaz,27.869.531-K,2022-07-26,Medio Mayor C
+Moisés Isaac,Martínez Colileo,27.762.668-3,2022-04-09,Medio Mayor C
+Santiago Agustín,Naipil Escares,27.986.926-5,2022-11-10,Medio Mayor C
+Claudio Andrés,Necuñir Cordovez,27.804.141-7,2022-05-23,Medio Mayor C
+Dylan Doruk,Pineda Guedez,100.221.654-F,2022-07-04,Medio Mayor C
+Abrahám Ignacio,Pinto Fernández,27.796.180-6,2022-05-16,Medio Mayor C
+Noa Aitana,Polo Jama,27.883.484-0,2022-08-11,Medio Mayor C
+Maximiliano Agustín,Quiroga Parada,27.936.699-9,2022-07-12,Medio Mayor C
+Amparo Leonor,Romero Oyarzún,27.889.830-k,2022-08-15,Medio Mayor C
+Amanda Millaray,Salazar Navarrete,27.846.030-4,2022-07-01,Medio Mayor C
+Isidora Constanza,Salazar Valenzuela,27.832.738-K,2022-06-16,Medio Mayor C
+Gabriela Ignacia,Sepúlveda Paredes,27.833.888-6,2022-06-17,Medio Mayor C
+David Ignacio,Toledo Pizarro,27.785.140-7,2022-05-10,Medio Mayor C
+Emma Antonia,Torres Villanueva,27.780.273-2,2022-05-05,Medio Mayor C
+Agustina Suyai Amaranta,Valenzuela Carrasco,27.878.685-4,2022-08-03,Medio Mayor C
+Elisa Amparo,Valenzuela Sanhueza,27.905.127-0,2022-08-23,Medio Mayor C
+Francheska Koral,Villegas Reyes,27.905.530-6,2022-08-26,Medio Mayor C
