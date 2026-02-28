@@ -2,41 +2,32 @@ import NextAuth from "next-auth"
 import { PrismaAdapter } from "@next-auth/prisma-adapter"
 import CredentialsProvider from "next-auth/providers/credentials";
 import EmailProvider from "next-auth/providers/email";
-import nodemailer from "nodemailer"
+import React from "react";
 
 import prisma from "../../../lib/prisma"
-import { html, text } from "../../../src/emails/resetPassword";
+import ResetPasswordEmail from "../../../src/emails/resetPassword";
 import { login } from "db/auth";
 import { checkEmailExists, getUserData } from "db/user";
+import { sendEmail } from "services/email/resend";
 
 export const authOptions = {
   // https://next-auth.js.org/providers/overview
   providers: [
     EmailProvider({
-      server: {
-        host: process.env.SMTP_HOST,
-        port: Number(process.env.SMTP_PORT),
-        auth: {
-          user: process.env.SMTP_USER,
-          pass: process.env.SMTP_PASSWORD
-        },
-      },
-      from: process.env.SMTP_FROM,
+      from: "esteban@ungapp.com",
       async sendVerificationRequest({
         identifier: email,
         url,
-        provider: { server, from },
+        provider: { from },
       }) {
         const validUser = await checkEmailExists(email);
         if (validUser) {
           const { host } = new URL(url)
-          const transport = nodemailer.createTransport(server)
-          await transport.sendMail({
+          await sendEmail({
             to: email,
             from,
             subject: 'Cambia tu contraseña en Unga',
-            text: text({ url, host }),
-            html: html({ url, host, email }),
+            react: <ResetPasswordEmail url={url} host={host} email={email} />,
           })
         } else {
           throw new Error(JSON.stringify({ error: 'No existe un usuario con este correo', status: false }))

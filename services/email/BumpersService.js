@@ -3,6 +3,13 @@ import { getRegisteredUsersWithDaysAgeEqualTo, getTrialUsersWithDaysAgeEqualTo }
 import StatisticsService from "services/StatisticsService";
 import { sendExampleActivitiesEmail, sendGenericMassiveEmailWithFirstName } from "./users";
 import { intersection } from "lodash";
+import PlanningExplanationEmail from "src/emails/PlanningExplanation";
+import AIPlanningExplanationEmail from "src/emails/AIPlanningExplanation";
+import EvaluationExplanationEmail from "src/emails/EvaluationExplanation";
+import TrialPlanningExplanationEmail from "src/emails/TrialPlanningExplanation";
+import TrialEvaluationExplanationEmail from "src/emails/TrialEvaluationExplanation";
+import TrialDownloadReportsEmail from "src/emails/TrialDownloadReports";
+import TrialAttendanceExplanationEmail from "src/emails/TrialAttendanceExplanation";
 
 export default class BumperEmailsService {
   static async sendActivitiesExamplesToRegisteredUsers() {
@@ -36,7 +43,11 @@ export default class BumperEmailsService {
     const users = await getRegisteredUsersWithDaysAgeEqualTo({ ageInDays });
     if (users.length === 0) return;
 
-    sendGenericMassiveEmailWithFirstName({ users, templateId: 'd-983dece0df5e4194a71f04bbd3a7cbe5' });
+    sendGenericMassiveEmailWithFirstName({
+      users,
+      EmailComponent: PlanningExplanationEmail,
+      subject: 'Planifica mejor en Unga',
+    });
   }
 
   static async sendAIPlanningExplanationToRegisteredUsers() {
@@ -44,7 +55,11 @@ export default class BumperEmailsService {
     const users = await getRegisteredUsersWithDaysAgeEqualTo({ ageInDays });
     if (users.length === 0) return;
 
-    sendGenericMassiveEmailWithFirstName({ users, templateId: 'd-e181c6ac6c1644b6aefae7ed6a163653' });
+    sendGenericMassiveEmailWithFirstName({
+      users,
+      EmailComponent: AIPlanningExplanationEmail,
+      subject: 'Acelera tu planificacion con IA',
+    });
   }
 
   static async sendEvaluationExplanationToRegisteredUsers() {
@@ -52,7 +67,11 @@ export default class BumperEmailsService {
     const users = await getRegisteredUsersWithDaysAgeEqualTo({ ageInDays });
     if (users.length === 0) return;
 
-    sendGenericMassiveEmailWithFirstName({ users, templateId: 'd-4791853d477c4c55b1b0f7347052020e' });
+    sendGenericMassiveEmailWithFirstName({
+      users,
+      EmailComponent: EvaluationExplanationEmail,
+      subject: 'Haz seguimiento de avances con Unga',
+    });
   }
 
   static async sendPlanningExplanationToTrialUsers() {
@@ -60,7 +79,11 @@ export default class BumperEmailsService {
     const users = await getTrialUsersWithDaysAgeEqualTo(ageInDays);
     if (users.length === 0) return;
 
-    sendGenericMassiveEmailWithFirstName({ users, templateId: 'd-0b211bb09f924cb0a920833870f8b170' });
+    sendGenericMassiveEmailWithFirstName({
+      users,
+      EmailComponent: TrialPlanningExplanationEmail,
+      subject: 'Comienza tu prueba planificando',
+    });
   }
 
   static async sendEvaluationExplanationToTrialUsers() {
@@ -68,7 +91,11 @@ export default class BumperEmailsService {
     const users = await getTrialUsersWithDaysAgeEqualTo(ageInDays);
     if (users.length === 0) return;
 
-    sendGenericMassiveEmailWithFirstName({ users, templateId: 'd-ce3affc04c1b411d815f024017949463' });
+    sendGenericMassiveEmailWithFirstName({
+      users,
+      EmailComponent: TrialEvaluationExplanationEmail,
+      subject: 'Evalua en minutos durante tu prueba',
+    });
   }
 
   static async sendDownloadReportsExplanationToTrialUsers() {
@@ -76,7 +103,11 @@ export default class BumperEmailsService {
     const users = await getTrialUsersWithDaysAgeEqualTo(ageInDays);
     if (users.length === 0) return;
 
-    sendGenericMassiveEmailWithFirstName({ users, templateId: 'd-32fef3db8b3947dbaf3c685210f2576c' });
+    sendGenericMassiveEmailWithFirstName({
+      users,
+      EmailComponent: TrialDownloadReportsEmail,
+      subject: 'Comparte avances con reportes',
+    });
   }
 
   static async sendAttendanceExplanationToTrialUsers() {
@@ -84,6 +115,10 @@ export default class BumperEmailsService {
     const users = await getTrialUsersWithDaysAgeEqualTo(ageInDays);
     if (users.length === 0) return;
 
-    sendGenericMassiveEmailWithFirstName({ users, templateId: 'd-5bb46e5c5fc0497187fd5f87eafeba9b' });
+    sendGenericMassiveEmailWithFirstName({
+      users,
+      EmailComponent: TrialAttendanceExplanationEmail,
+      subject: 'Registra asistencia de forma simple',
+    });
   }
 }

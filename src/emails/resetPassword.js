@@ -1,55 +1,78 @@
-// Email HTML body
-export function html({ url, host, email }) {
-  // Insert invisible space into domains and email address to prevent both the
-  // email address and the domain from being turned into a hyperlink by email
-  // clients like Outlook and Apple mail, as this is confusing because it seems
-  // like they are supposed to click on their email address to sign in.
-  const escapedEmail = `${email.replace(/\./g, "&#8203;.")}`
-  const escapedHost = `${host.replace(/\./g, "&#8203;.")}`
+import React from 'react';
+import {
+  Body,
+  Button,
+  Container,
+  Head,
+  Html,
+  Preview,
+  Section,
+  Text,
+} from '@react-email/components';
 
-  // Some simple styling options
-  const backgroundColor = "#f9f9f9"
-  const textColor = "#444444"
-  const mainBackgroundColor = "#ffffff"
-  const buttonBackgroundColor = "#346df1"
-  const buttonBorderColor = "#346df1"
-  const buttonTextColor = "#ffffff"
+export const ResetPasswordEmail = ({ url, host }) => (
+  <Html>
+    <Head />
+    <Preview>Cambia tu contrasena en Unga</Preview>
+    <Body style={styles.body}>
+      <Container style={styles.container}>
+        <Text style={styles.brand}>{host}</Text>
+        <Text style={styles.title}>Cambia tu contrasena en Unga</Text>
+        <Section style={styles.center}>
+          <Button href={url} style={styles.button}>
+            Cambiar contrasena
+          </Button>
+        </Section>
+        <Text style={styles.footer}>Si no solicitaste este email, ignoralo.</Text>
+      </Container>
+    </Body>
+  </Html>
+);
 
-  return `
-<body style="background: ${backgroundColor};">
-  <table width="100%" border="0" cellspacing="0" cellpadding="0">
-    <tr>
-      <td align="center" style="padding: 10px 0px 20px 0px; font-size: 22px; font-family: Helvetica, Arial, sans-serif; color: ${textColor};">
-        <strong>${escapedHost}</strong>
-      </td>
-    </tr>
-  </table>
-  <table width="100%" border="0" cellspacing="20" cellpadding="0" style="background: ${mainBackgroundColor}; max-width: 600px; margin: auto; border-radius: 10px;">
-    <tr>
-      <td align="center" style="padding: 10px 0px 0px 0px; font-size: 18px; font-family: Helvetica, Arial, sans-serif; color: ${textColor};">
-        Cambia tu contraseña en <strong>Unga</strong>
-      </td>
-    </tr>
-    <tr>
-      <td align="center" style="padding: 20px 0;">
-        <table border="0" cellspacing="0" cellpadding="0">
-          <tr>
-            <td align="center" style="border-radius: 5px;" bgcolor="${buttonBackgroundColor}"><a href="${url}" target="_blank" style="font-size: 18px; font-family: Helvetica, Arial, sans-serif; color: ${buttonTextColor}; text-decoration: none; border-radius: 5px; padding: 10px 20px; border: 1px solid ${buttonBorderColor}; display: inline-block; font-weight: bold;">Cambiar contraseña</a></td>
-          </tr>
-        </table>
-      </td>
-    </tr>
-    <tr>
-      <td align="center" style="padding: 0px 0px 10px 0px; font-size: 16px; line-height: 22px; font-family: Helvetica, Arial, sans-serif; color: ${textColor};">
-        Si no solicitaste este email, ignóralo
-      </td>
-    </tr>
-  </table>
-</body>
-`
-}
+const styles = {
+  body: {
+    backgroundColor: '#f9f9f9',
+    fontFamily: 'Helvetica, Arial, sans-serif',
+    padding: '20px 0',
+  },
+  container: {
+    backgroundColor: '#ffffff',
+    borderRadius: '10px',
+    margin: '0 auto',
+    maxWidth: '600px',
+    padding: '20px',
+  },
+  brand: {
+    color: '#444444',
+    fontSize: '22px',
+    fontWeight: '700',
+    margin: '0 0 8px',
+    textAlign: 'center',
+  },
+  title: {
+    color: '#444444',
+    fontSize: '18px',
+    margin: '0 0 20px',
+    textAlign: 'center',
+  },
+  center: {
+    textAlign: 'center',
+  },
+  button: {
+    backgroundColor: '#346df1',
+    borderRadius: '5px',
+    color: '#ffffff',
+    fontSize: '16px',
+    fontWeight: '700',
+    padding: '12px 20px',
+    textDecoration: 'none',
+  },
+  footer: {
+    color: '#444444',
+    fontSize: '14px',
+    marginTop: '20px',
+    textAlign: 'center',
+  },
+};
 
-// Email Text body (fallback for email clients that don't render HTML, e.g. feature phones)
-export function text({ url, host }) {
-  return `Cambia tu contraseña en ${host}\n${url}\n\n`
-}
+export default ResetPasswordEmail;

@@ -1,6 +1,5 @@
 import moment from 'moment';
 import { getAllTeachersWithStatsInRange } from "db/user";
-import { emailTeachersWeeklyStats } from 'services/email/reports';
 
 export default class SendTeachersWeeklyStats {
   constructor() {
@@ -9,7 +8,7 @@ export default class SendTeachersWeeklyStats {
   }
 
   async perform() {
-    const teachers = await getAllTeachersWithStatsInRange(this.sevenDaysBack, this.now);
-    emailTeachersWeeklyStats(teachers);
+    // Weekly stats emails are currently disabled.
+    await getAllTeachersWithStatsInRange(this.sevenDaysBack, this.now);
   }
 }
