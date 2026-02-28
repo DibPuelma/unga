@@ -110,17 +110,42 @@ export default async function handler(req, res) {
 
         // Parse birth date if provided
         let birthDate = null;
-        if (row.birthDate && row.birthDate.trim()) {
-          const parsedDate = new Date(row.birthDate.trim());
-          if (isNaN(parsedDate.getTime())) {
-            results.failed.push({
-              row: rowNumber,
-              name: `${row.firstName || ''} ${row.lastName || ''}`.trim(),
-              error: 'Fecha de nacimiento inválida. Use formato YYYY-MM-DD',
-            });
-            continue;
+        if (row.birthDate) {
+          let dateValue = row.birthDate;
+          
+          // Handle different date formats from Excel
+          // If it's a Date object, convert to string
+          if (dateValue instanceof Date) {
+            dateValue = dateValue.toISOString().split('T')[0]; // YYYY-MM-DD format
           }
-          birthDate = parsedDate;
+          // If it's a number, it might be an Excel serial date
+          else if (typeof dateValue === 'number') {
+            // Excel serial date: days since January 1, 1900
+            const excelEpoch = new Date(1899, 11, 30); // December 30, 1899
+            const date = new Date(excelEpoch.getTime() + dateValue * 24 * 60 * 60 * 1000);
+            dateValue = date.toISOString().split('T')[0];
+          }
+          // If it's a string, trim it
+          else if (typeof dateValue === 'string') {
+            dateValue = dateValue.trim();
+          }
+          // Convert to string for other types
+          else {
+            dateValue = String(dateValue).trim();
+          }
+          
+          if (dateValue) {
+            const parsedDate = new Date(dateValue);
+            if (isNaN(parsedDate.getTime())) {
+              results.failed.push({
+                row: rowNumber,
+                name: `${row.firstName || ''} ${row.lastName || ''}`.trim(),
+                error: `Fecha de nacimiento inválida: ${row.birthDate}. Use formato YYYY-MM-DD`,
+              });
+              continue;
+            }
+            birthDate = parsedDate;
+          }
         }
 
         // Create student
