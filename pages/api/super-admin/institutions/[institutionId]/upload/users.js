@@ -7,6 +7,18 @@ import { config } from './_utils';
 
 export { config };
 
+const INSTITUTIONAL_ROLES = ['teacher', 'coordinator', 'principal'];
+
+const getUserPlanFromRow = (row, fallbackRole) => {
+  const planFromRow = row.plan?.trim();
+  if (planFromRow) return planFromRow;
+
+  const normalizedRole = (row.role?.trim() || fallbackRole || '').toLowerCase();
+  if (INSTITUTIONAL_ROLES.includes(normalizedRole)) return 'institutional';
+
+  return null;
+};
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ message: 'Método no permitido' });
@@ -77,6 +89,8 @@ export default async function handler(req, res) {
         }
 
         const email = row.email.trim();
+        const rowRole = row.role?.trim() || null;
+        const userPlan = getUserPlanFromRow(row);
 
         // Check if user already exists
         const existingUser = await prisma.users.findUnique({
@@ -94,17 +108,30 @@ export default async function handler(req, res) {
           }
 
           // Merge new classrooms with existing ones (avoid duplicates)
+          const updateData = {};
           if (classroomIds.length > 0) {
             const existingClassrooms = existingUser.classrooms || [];
             const mergedClassrooms = [...new Set([...existingClassrooms, ...classroomIds])];
             
             // Only update if there are new classrooms to add
             if (mergedClassrooms.length > existingClassrooms.length) {
-              await prisma.users.update({
-                where: { id: existingUser.id },
-                data: { classrooms: mergedClassrooms },
-              });
+              updateData.classrooms = mergedClassrooms;
             }
+          }
+
+          // Backfill institutional plan for existing institutional users created without plan
+          if (!existingUser.plan) {
+            const existingUserDefaultPlan = getUserPlanFromRow(row, existingUser.role);
+            if (existingUserDefaultPlan) {
+              updateData.plan = existingUserDefaultPlan;
+            }
+          }
+
+          if (Object.keys(updateData).length > 0) {
+            await prisma.users.update({
+              where: { id: existingUser.id },
+              data: updateData,
+            });
           }
 
           results.successful.push({
@@ -129,7 +156,8 @@ export default async function handler(req, res) {
           email,
           firstName: row.firstName?.trim() || null,
           lastName: row.lastName?.trim() || null,
-          role: row.role?.trim() || null,
+          role: rowRole,
+          plan: userPlan,
           phoneNumber: row.phoneNumber?.trim() || null,
           country: row.country?.trim() || institution.country || null,
           password: row.password?.trim() || null,
