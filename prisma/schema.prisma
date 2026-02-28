@@ -1,0 +1,743 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  users             users   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Activities {
+  id                                                                 String                              @id @default(cuid())
+  name                                                               String
+  description                                                        String?
+  ideaOrigin                                                         String?
+  ideaOriginDetails                                                  String?
+  familyParticipation                                                String?
+  adultRole                                                          String?
+  steps                                                              Json                                @default("[]")
+  materials                                                          Json                                @default("[]")
+  assets                                                             Json                                @default("{}")
+  fromSuggestion                                                     Boolean?                            @default(false)
+  openToCommunity                                                    Boolean?                            @default(false)
+  sponsorInstitutionId                                               String?
+  originalSponsorInstitutionId                                       String?
+  creatorId                                                          String
+  updatedById                                                        String?
+  deletedAt                                                          DateTime?
+  createdAt                                                          DateTime                            @default(now())
+  updatedAt                                                          DateTime                            @updatedAt
+  themeId                                                            String?
+  publiclyAvailable                                                  Boolean?                            @default(false)
+  users_Activities_creatorIdTousers                                  users                               @relation("Activities_creatorIdTousers", fields: [creatorId], references: [id])
+  Institutions_Activities_originalSponsorInstitutionIdToInstitutions Institutions?                       @relation("Activities_originalSponsorInstitutionIdToInstitutions", fields: [originalSponsorInstitutionId], references: [id])
+  Institutions_Activities_sponsorInstitutionIdToInstitutions         Institutions?                       @relation("Activities_sponsorInstitutionIdToInstitutions", fields: [sponsorInstitutionId], references: [id])
+  ActivitiesThemes                                                   ActivitiesThemes?                   @relation(fields: [themeId], references: [id])
+  users_Activities_updatedByIdTousers                                users?                              @relation("Activities_updatedByIdTousers", fields: [updatedById], references: [id])
+  ActivityReviews                                                    ActivityReviews[]
+  Observations                                                       Observations[]
+  PlannedActivities                                                  PlannedActivities[]
+  PlannedActivitiesEvaluations                                       PlannedActivitiesEvaluations[]
+  ConsequentialCurricularObjectives                                  ConsequentialCurricularObjectives[] @relation("ActivityConsequentialCurricularObjectives")
+  Cores                                                              Cores[]                             @relation("ActivityCores")
+  CurricularObjectives                                               CurricularObjectives[]              @relation("ActivityCurricularObjectives")
+  Objectives                                                         Objectives[]                        @relation("ActivityObjectives")
+  Levels                                                             Levels[]                            @relation("ActivityRecommendedLevels")
+  SubObjectives                                                      SubObjectives[]                     @relation("ActivitySubObjectives")
+
+  @@index([creatorId])
+  @@index([deletedAt])
+  @@index([sponsorInstitutionId])
+}
+
+model ActivitiesThemes {
+  id         String       @id @default(cuid())
+  name       String
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+  Activities Activities[]
+}
+
+model ActivityReviews {
+  id         String     @id @default(cuid())
+  activityId String
+  rating     Int?
+  comment    String?
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  Activities Activities @relation(fields: [activityId], references: [id], onDelete: Cascade)
+
+  @@index([activityId])
+}
+
+model Attendances {
+  id             String   @id @default(cuid())
+  attendanceDate DateTime @db.Date
+  attendanceType String
+  studentId      String
+  classroomId    String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  teacherId      String?
+  Classes        Classes  @relation(fields: [classroomId], references: [id])
+  Students       Students @relation(fields: [studentId], references: [id])
+  users          users?   @relation(fields: [teacherId], references: [id])
+
+  @@index([classroomId, attendanceDate])
+  @@index([studentId, attendanceDate])
+}
+
+model Classes {
+  id                           String                         @id @default(cuid())
+  name                         String?
+  levelId                      String
+  institutionId                String
+  mainTeacherId                String?
+  dailyActivitiesPerDay        Int?
+  deletedAt                    DateTime?
+  createdAt                    DateTime                       @default(now())
+  updatedAt                    DateTime                       @updatedAt
+  Attendances                  Attendances[]
+  Institutions                 Institutions                   @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  Levels                       Levels                         @relation(fields: [levelId], references: [id])
+  users                        users?                         @relation(fields: [mainTeacherId], references: [id])
+  ClassroomReportConfiguration ClassroomReportConfiguration?
+  Evaluations                  Evaluations[]
+  Observations                 Observations[]
+  PlannedActivities            PlannedActivities[]
+  PlannedActivitiesEvaluations PlannedActivitiesEvaluations[]
+  Reports                      Reports[]
+  ReportsOptions               ReportsOptions[]
+  Students                     Students[]
+  SubObjectivesEvaluations     SubObjectivesEvaluations[]
+  Objectives                   Objectives[]                   @relation("ObjectiveClassrooms")
+  SubObjectives                SubObjectives[]                @relation("SubObjectiveClassrooms")
+
+  @@index([deletedAt])
+  @@index([institutionId])
+}
+
+model ClassroomReportConfiguration {
+  id            String       @id @default(cuid())
+  classroomId   String       @unique
+  configuration Json         @default("{}")
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  institutionId String
+  Classes       Classes      @relation(fields: [classroomId], references: [id], onDelete: Cascade)
+  Institutions  Institutions @relation(fields: [institutionId], references: [id])
+
+  @@index([classroomId])
+}
+
+model ConsequentialCurricularObjectives {
+  id                    String               @id @default(cuid())
+  name                  String
+  curricularObjectiveId String
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime             @updatedAt
+  CurricularObjectives  CurricularObjectives @relation(fields: [curricularObjectiveId], references: [id], onDelete: Cascade)
+  Activities            Activities[]         @relation("ActivityConsequentialCurricularObjectives")
+}
+
+model Cores {
+  id                           String                         @id @default(cuid())
+  name                         String
+  description                  String?
+  position                     Int?
+  type                         String?
+  institutionId                String
+  createdAt                    DateTime                       @default(now())
+  updatedAt                    DateTime                       @updatedAt
+  Institutions                 Institutions                   @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  Evaluations                  Evaluations[]
+  Objectives                   Objectives[]
+  Observations                 Observations[]
+  PlannedActivitiesEvaluations PlannedActivitiesEvaluations[]
+  SubObjectives                SubObjectives[]
+  SubObjectivesEvaluations     SubObjectivesEvaluations[]
+  Activities                   Activities[]                   @relation("ActivityCores")
+  CurricularObjectives         CurricularObjectives[]
+
+  @@index([institutionId])
+}
+
+model CurricularObjectives {
+  id                                String                              @id @default(cuid())
+  name                              String
+  country                           String?
+  methodology                       String?
+  institutionId                    String
+  coreId                           String
+  createdAt                         DateTime                            @default(now())
+  updatedAt                         DateTime                            @updatedAt
+  ConsequentialCurricularObjectives ConsequentialCurricularObjectives[]
+  Objectives                        Objectives[]
+  SubObjectives                     SubObjectives[]
+  Activities                        Activities[]                        @relation("ActivityCurricularObjectives")
+  Levels                            Levels[]                            @relation("CurricularObjectiveLevels")
+  Institutions                      Institutions                        @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  Cores                             Cores                               @relation(fields: [coreId], references: [id], onDelete: Cascade)
+
+  @@index([country])
+  @@index([methodology])
+  @@index([institutionId])
+  @@index([coreId])
+}
+
+model DownloadedStudentsReports {
+  id             String       @id @default(cuid())
+  institutionId  String
+  downloadedById String?
+  reportData     Json?        @default("{}")
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  users          users?       @relation(fields: [downloadedById], references: [id])
+  Institutions   Institutions @relation(fields: [institutionId], references: [id])
+
+  @@index([institutionId])
+}
+
+model Evaluations {
+  id                                                                           String              @id @default(cuid())
+  objectiveId                                                                  String
+  studentId                                                                    String
+  teacherId                                                                    String
+  classroomId                                                                  String
+  levelId                                                                      String
+  institutionId                                                                String
+  coreId                                                                       String
+  oldLevelOfAchievementId                                                      String
+  levelOfAchievementId                                                         String
+  updatedById                                                                  String?
+  createdAt                                                                    DateTime            @default(now())
+  updatedAt                                                                    DateTime            @updatedAt
+  Classes                                                                      Classes             @relation(fields: [classroomId], references: [id])
+  Cores                                                                        Cores               @relation(fields: [coreId], references: [id])
+  Institutions                                                                 Institutions        @relation(fields: [institutionId], references: [id])
+  Levels                                                                       Levels              @relation(fields: [levelId], references: [id])
+  LevelsOfAchievement_Evaluations_levelOfAchievementIdToLevelsOfAchievement    LevelsOfAchievement @relation("Evaluations_levelOfAchievementIdToLevelsOfAchievement", fields: [levelOfAchievementId], references: [id])
+  Objectives                                                                   Objectives          @relation(fields: [objectiveId], references: [id])
+  LevelsOfAchievement_Evaluations_oldLevelOfAchievementIdToLevelsOfAchievement LevelsOfAchievement @relation("Evaluations_oldLevelOfAchievementIdToLevelsOfAchievement", fields: [oldLevelOfAchievementId], references: [id])
+  Students                                                                     Students            @relation(fields: [studentId], references: [id])
+  users_Evaluations_teacherIdTousers                                           users               @relation("Evaluations_teacherIdTousers", fields: [teacherId], references: [id])
+  users_Evaluations_updatedByIdTousers                                         users?              @relation("Evaluations_updatedByIdTousers", fields: [updatedById], references: [id])
+
+  @@index([createdAt])
+  @@index([institutionId])
+  @@index([objectiveId, studentId, createdAt])
+  @@index([studentId])
+  @@index([updatedById])
+}
+
+model Institutions {
+  id                                                               String                         @id @default(cuid())
+  name                                                             String?
+  address                                                          String?
+  code                                                             String?
+  junjiCode                                                        String?
+  mobilePhone                                                      String?
+  email                                                            String?
+  webpage                                                          String?
+  logo                                                             String?
+  country                                                          String?
+  features                                                         String[]                       @default([])
+  configuration                                                    Json?
+  deletedAt                                                        DateTime?
+  createdAt                                                        DateTime                       @default(now())
+  updatedAt                                                        DateTime                       @updatedAt
+  Activities_Activities_originalSponsorInstitutionIdToInstitutions Activities[]                   @relation("Activities_originalSponsorInstitutionIdToInstitutions")
+  Activities_Activities_sponsorInstitutionIdToInstitutions         Activities[]                   @relation("Activities_sponsorInstitutionIdToInstitutions")
+  Classes                                                          Classes[]
+  ClassroomReportConfiguration                                     ClassroomReportConfiguration[]
+  Cores                                                            Cores[]
+  DownloadedStudentsReports                                        DownloadedStudentsReports[]
+  Evaluations                                                      Evaluations[]
+  LevelsOfAchievement                                              LevelsOfAchievement[]
+  Objectives                                                       Objectives[]
+  Observations                                                     Observations[]
+  PlannedActivities                                                PlannedActivities[]
+  PlannedActivitiesEvaluations                                     PlannedActivitiesEvaluations[]
+  Reports                                                          Reports[]
+  ReportsOptions                                                   ReportsOptions[]
+  Students                                                         Students[]
+  SubObjectives                                                    SubObjectives[]
+  SubObjectivesEvaluations                                         SubObjectivesEvaluations[]
+  users                                                            users[]
+  InstitutionCalendarEvents                                        InstitutionCalendarEvents[]
+  CurricularObjectives                                             CurricularObjectives[]
+
+  @@index([deletedAt])
+}
+
+model InstitutionCalendarEvents {
+  id                  String       @id @default(cuid())
+  name                String
+  startDay            DateTime     @db.Date
+  endDay              DateTime     @db.Date
+  shouldShowInCalendar Boolean     @default(true)
+  isHoliday           Boolean      @default(false)
+  institutionId       String
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
+  Institutions        Institutions @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+
+  @@index([institutionId])
+  @@index([startDay, endDay])
+}
+
+model Levels {
+  id                           String                         @id @default(cuid())
+  name                         String
+  createdAt                    DateTime                       @default(now())
+  updatedAt                    DateTime                       @updatedAt
+  Classes                      Classes[]
+  Evaluations                  Evaluations[]
+  PlannedActivities            PlannedActivities[]
+  PlannedActivitiesEvaluations PlannedActivitiesEvaluations[]
+  SubObjectivesEvaluations     SubObjectivesEvaluations[]
+  ObjectiveLevels              ObjectiveLevels[]
+  Activities                   Activities[]                   @relation("ActivityRecommendedLevels")
+  CurricularObjectives         CurricularObjectives[]         @relation("CurricularObjectiveLevels")
+  SubObjectives                SubObjectives[]                @relation("SubObjectiveLevels")
+}
+
+model LevelsOfAchievement {
+  id                                                                                                     String                         @id @default(cuid())
+  name                                                                                                   String
+  value                                                                                                  Int
+  description                                                                                            String?
+  institutionId                                                                                          String
+  createdAt                                                                                              DateTime                       @default(now())
+  updatedAt                                                                                              DateTime                       @updatedAt
+  Evaluations_Evaluations_levelOfAchievementIdToLevelsOfAchievement                                      Evaluations[]                  @relation("Evaluations_levelOfAchievementIdToLevelsOfAchievement")
+  Evaluations_Evaluations_oldLevelOfAchievementIdToLevelsOfAchievement                                   Evaluations[]                  @relation("Evaluations_oldLevelOfAchievementIdToLevelsOfAchievement")
+  Institutions                                                                                           Institutions                   @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  PlannedActivitiesEvaluations_PlannedActivitiesEvaluations_levelOfAchievementIdToLevelsOfAchievement    PlannedActivitiesEvaluations[] @relation("PlannedActivitiesEvaluations_levelOfAchievementIdToLevelsOfAchievement")
+  PlannedActivitiesEvaluations_PlannedActivitiesEvaluations_oldLevelOfAchievementIdToLevelsOfAchievement PlannedActivitiesEvaluations[] @relation("PlannedActivitiesEvaluations_oldLevelOfAchievementIdToLevelsOfAchievement")
+  SubObjectivesEvaluations_SubObjectivesEvaluations_levelOfAchievementIdToLevelsOfAchievement            SubObjectivesEvaluations[]     @relation("SubObjectivesEvaluations_levelOfAchievementIdToLevelsOfAchievement")
+  SubObjectivesEvaluations_SubObjectivesEvaluations_oldLevelOfAchievementIdToLevelsOfAchievement         SubObjectivesEvaluations[]     @relation("SubObjectivesEvaluations_oldLevelOfAchievementIdToLevelsOfAchievement")
+
+  @@index([institutionId])
+  @@index([value, institutionId])
+}
+
+model Objectives {
+  id                           String                         @id @default(cuid())
+  name                         String
+  position                     Int?
+  coreId                       String
+  curricularObjectiveId        String?
+  createdById                  String
+  deletedAt                    DateTime?
+  createdAt                    DateTime                       @default(now())
+  updatedAt                    DateTime                       @updatedAt
+  institutionId                String?
+  Evaluations                  Evaluations[]
+  Cores                        Cores                          @relation(fields: [coreId], references: [id], onDelete: Cascade)
+  users                        users                          @relation(fields: [createdById], references: [id])
+  CurricularObjectives         CurricularObjectives?          @relation(fields: [curricularObjectiveId], references: [id])
+  Institutions                 Institutions?                  @relation(fields: [institutionId], references: [id])
+  PlannedActivitiesEvaluations PlannedActivitiesEvaluations[]
+  SubObjectives                SubObjectives[]
+  SubObjectivesEvaluations     SubObjectivesEvaluations[]
+  ObjectiveLevels              ObjectiveLevels[]
+  Activities                   Activities[]                   @relation("ActivityObjectives")
+  Classes                      Classes[]                      @relation("ObjectiveClassrooms")
+
+  @@index([coreId, deletedAt])
+  @@index([coreId])
+  @@index([deletedAt])
+}
+
+model Observations {
+  id                String             @id @default(cuid())
+  description       String?
+  assets            String[]           @default([])
+  observedAt        DateTime           @default(now())
+  teacherId         String
+  classroomId       String
+  institutionId     String?
+  coreId            String?
+  plannedActivityId String?
+  deletedAt         DateTime?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  activityId        String?
+  Activities        Activities?        @relation(fields: [activityId], references: [id])
+  Classes           Classes            @relation(fields: [classroomId], references: [id])
+  Cores             Cores?             @relation(fields: [coreId], references: [id])
+  Institutions      Institutions?      @relation(fields: [institutionId], references: [id])
+  PlannedActivities PlannedActivities? @relation(fields: [plannedActivityId], references: [id])
+  users             users              @relation(fields: [teacherId], references: [id])
+  Students          Students[]         @relation("ObservationStudents")
+  Reports           Reports[]          @relation("ReportObservations")
+
+  @@index([classroomId])
+  @@index([coreId])
+  @@index([deletedAt])
+  @@index([institutionId])
+  @@index([plannedActivityId])
+  @@index([teacherId])
+}
+
+model OpenAIApiCalls {
+  id         String   @id @default(cuid())
+  userId     String
+  prompt     String?
+  response   String?
+  model      String?
+  tokensUsed Int?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  users      users    @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+}
+
+model PMFAnswers {
+  id             String    @id @default(cuid())
+  userId         String
+  dissapointment Int?
+  why            String?
+  improvements   String?
+  snoozeCount    Int       @default(0)
+  askAgainDate   DateTime  @db.Date
+  answeredAt     DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  users          users     @relation(fields: [userId], references: [id])
+
+  @@index([userId, createdAt])
+}
+
+model PlannedActivities {
+  id                                         String                         @id @default(cuid())
+  position                                   Int?
+  activityId                                 String
+  teacherId                                  String
+  classroomId                                String
+  institutionId                              String
+  plannedDate                                DateTime                       @db.Date
+  deletedAt                                  DateTime?
+  deletedById                                String?
+  createdAt                                  DateTime                       @default(now())
+  updatedAt                                  DateTime                       @updatedAt
+  levelId                                    String?
+  Observations                               Observations[]
+  Activities                                 Activities                     @relation(fields: [activityId], references: [id])
+  Classes                                    Classes                        @relation(fields: [classroomId], references: [id])
+  users_PlannedActivities_deletedByIdTousers users?                         @relation("PlannedActivities_deletedByIdTousers", fields: [deletedById], references: [id])
+  Institutions                               Institutions                   @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  Levels                                     Levels?                        @relation(fields: [levelId], references: [id])
+  users_PlannedActivities_teacherIdTousers   users                          @relation("PlannedActivities_teacherIdTousers", fields: [teacherId], references: [id])
+  PlannedActivitiesEvaluations               PlannedActivitiesEvaluations[]
+
+  @@index([classroomId])
+  @@index([createdAt])
+  @@index([deletedAt])
+  @@index([plannedDate, deletedAt])
+  @@index([teacherId])
+}
+
+model PlannedActivitiesEvaluations {
+  id                                                                                            String              @id @default(cuid())
+  activityId                                                                                    String
+  plannedActivityId                                                                             String
+  activityPlannedDate                                                                           DateTime            @db.Date
+  objectiveId                                                                                   String
+  subObjectiveId                                                                                String?
+  studentId                                                                                     String
+  teacherId                                                                                     String
+  classroomId                                                                                   String
+  levelId                                                                                       String
+  institutionId                                                                                 String
+  coreId                                                                                        String
+  oldLevelOfAchievementId                                                                       String
+  levelOfAchievementId                                                                          String
+  createdAt                                                                                     DateTime            @default(now())
+  updatedAt                                                                                     DateTime            @updatedAt
+  Activities                                                                                    Activities          @relation(fields: [activityId], references: [id])
+  Classes                                                                                       Classes             @relation(fields: [classroomId], references: [id])
+  Cores                                                                                         Cores               @relation(fields: [coreId], references: [id])
+  Institutions                                                                                  Institutions        @relation(fields: [institutionId], references: [id])
+  Levels                                                                                        Levels              @relation(fields: [levelId], references: [id])
+  LevelsOfAchievement_PlannedActivitiesEvaluations_levelOfAchievementIdToLevelsOfAchievement    LevelsOfAchievement @relation("PlannedActivitiesEvaluations_levelOfAchievementIdToLevelsOfAchievement", fields: [levelOfAchievementId], references: [id])
+  Objectives                                                                                    Objectives          @relation(fields: [objectiveId], references: [id])
+  LevelsOfAchievement_PlannedActivitiesEvaluations_oldLevelOfAchievementIdToLevelsOfAchievement LevelsOfAchievement @relation("PlannedActivitiesEvaluations_oldLevelOfAchievementIdToLevelsOfAchievement", fields: [oldLevelOfAchievementId], references: [id])
+  PlannedActivities                                                                             PlannedActivities   @relation(fields: [plannedActivityId], references: [id])
+  Students                                                                                      Students            @relation(fields: [studentId], references: [id])
+  SubObjectives                                                                                 SubObjectives?      @relation(fields: [subObjectiveId], references: [id])
+  users                                                                                         users               @relation(fields: [teacherId], references: [id])
+}
+
+model Referrals {
+  id                                String   @id @default(cuid())
+  referrerId                        String
+  referredId                        String
+  status                            String
+  amountPaid                        Float    @default(0)
+  amountToPay                       Float    @default(5000)
+  createdAt                         DateTime @default(now())
+  updatedAt                         DateTime @updatedAt
+  users_Referrals_referredIdTousers users    @relation("Referrals_referredIdTousers", fields: [referredId], references: [id])
+  users_Referrals_referrerIdTousers users    @relation("Referrals_referrerIdTousers", fields: [referrerId], references: [id])
+
+  @@index([referredId])
+  @@index([referrerId])
+}
+
+model Reports {
+  id                             String           @id @default(cuid())
+  studentId                      String
+  classroomId                    String
+  institutionId                  String
+  teacherId                      String
+  summary                        String?
+  descriptionByScope             Json?            @default("{}")
+  generalCommentPosition         String?
+  observationsByCore             Json?            @default("{}")
+  createdAt                      DateTime         @default(now())
+  updatedAt                      DateTime         @updatedAt
+  Classes                        Classes          @relation(fields: [classroomId], references: [id])
+  Institutions                   Institutions     @relation(fields: [institutionId], references: [id])
+  Students                       Students         @relation(fields: [studentId], references: [id])
+  users_Reports_teacherIdTousers users            @relation("Reports_teacherIdTousers", fields: [teacherId], references: [id])
+  ReportsOptions                 ReportsOptions[]
+  Observations                   Observations[]   @relation("ReportObservations")
+  users_UpdatedBy                users[]          @relation("UpdatedBy")
+
+  @@unique([studentId, classroomId])
+  @@index([studentId, classroomId])
+}
+
+model ReportsOptions {
+  id               String        @id @default(cuid())
+  reportId         String
+  studentId        String
+  classroomId      String
+  extraObjectives  String[]      @default([])
+  hiddenObjectives String[]      @default([])
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  institutionId    String?
+  Classes          Classes       @relation(fields: [classroomId], references: [id])
+  Institutions     Institutions? @relation(fields: [institutionId], references: [id])
+  Reports          Reports       @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  Students         Students      @relation(fields: [studentId], references: [id])
+
+  @@unique([studentId, classroomId])
+  @@index([studentId, classroomId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  users        users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Students {
+  id                           String                         @id @default(cuid())
+  firstName                    String
+  lastName                     String
+  rut                          String?
+  birthDate                    DateTime?
+  profilePicture               String?
+  classId                      String
+  institutionId                String
+  deactivatedAt                DateTime?
+  deletedAt                    DateTime?
+  createdAt                    DateTime                       @default(now())
+  updatedAt                    DateTime                       @updatedAt
+  Attendances                  Attendances[]
+  Evaluations                  Evaluations[]
+  PlannedActivitiesEvaluations PlannedActivitiesEvaluations[]
+  Reports                      Reports[]
+  ReportsOptions               ReportsOptions[]
+  Classes                      Classes                        @relation(fields: [classId], references: [id])
+  Institutions                 Institutions                   @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  SubObjectivesEvaluations     SubObjectivesEvaluations[]
+  Observations                 Observations[]                 @relation("ObservationStudents")
+
+  @@index([classId])
+  @@index([deactivatedAt])
+  @@index([deletedAt])
+  @@index([institutionId])
+}
+
+model SubObjectives {
+  id                           String                         @id @default(cuid())
+  name                         String
+  position                     Int?
+  objectiveId                  String
+  coreId                       String
+  curricularObjectiveId        String?
+  institutionId                String
+  createdById                  String
+  deletedAt                    DateTime?
+  createdAt                    DateTime                       @default(now())
+  updatedAt                    DateTime                       @updatedAt
+  PlannedActivitiesEvaluations PlannedActivitiesEvaluations[]
+  Cores                        Cores                          @relation(fields: [coreId], references: [id], onDelete: Cascade)
+  users                        users                          @relation(fields: [createdById], references: [id])
+  CurricularObjectives         CurricularObjectives?          @relation(fields: [curricularObjectiveId], references: [id])
+  Institutions                 Institutions                   @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  Objectives                   Objectives                     @relation(fields: [objectiveId], references: [id], onDelete: Cascade)
+  SubObjectivesEvaluations     SubObjectivesEvaluations[]
+  Activities                   Activities[]                   @relation("ActivitySubObjectives")
+  Classes                      Classes[]                      @relation("SubObjectiveClassrooms")
+  Levels                       Levels[]                       @relation("SubObjectiveLevels")
+
+  @@index([deletedAt])
+  @@index([institutionId, deletedAt])
+  @@index([objectiveId])
+}
+
+model SubObjectivesEvaluations {
+  id                                                                                        String              @id @default(cuid())
+  subObjectiveId                                                                            String
+  studentId                                                                                 String
+  teacherId                                                                                 String
+  classroomId                                                                               String
+  levelId                                                                                   String
+  institutionId                                                                             String
+  coreId                                                                                    String
+  objectiveId                                                                               String
+  oldLevelOfAchievementId                                                                   String
+  levelOfAchievementId                                                                      String
+  createdAt                                                                                 DateTime            @default(now())
+  updatedAt                                                                                 DateTime            @updatedAt
+  Classes                                                                                   Classes             @relation(fields: [classroomId], references: [id])
+  Cores                                                                                     Cores               @relation(fields: [coreId], references: [id])
+  Institutions                                                                              Institutions        @relation(fields: [institutionId], references: [id])
+  Levels                                                                                    Levels              @relation(fields: [levelId], references: [id])
+  LevelsOfAchievement_SubObjectivesEvaluations_levelOfAchievementIdToLevelsOfAchievement    LevelsOfAchievement @relation("SubObjectivesEvaluations_levelOfAchievementIdToLevelsOfAchievement", fields: [levelOfAchievementId], references: [id])
+  Objectives                                                                                Objectives          @relation(fields: [objectiveId], references: [id])
+  LevelsOfAchievement_SubObjectivesEvaluations_oldLevelOfAchievementIdToLevelsOfAchievement LevelsOfAchievement @relation("SubObjectivesEvaluations_oldLevelOfAchievementIdToLevelsOfAchievement", fields: [oldLevelOfAchievementId], references: [id])
+  Students                                                                                  Students            @relation(fields: [studentId], references: [id])
+  SubObjectives                                                                             SubObjectives       @relation(fields: [subObjectiveId], references: [id])
+  users                                                                                     users               @relation(fields: [teacherId], references: [id])
+
+  @@index([createdAt])
+  @@index([institutionId])
+  @@index([studentId])
+  @@index([subObjectiveId, studentId, createdAt])
+}
+
+model Tutorials {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  content     Json?    @default("{}")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model WeeklyTeachersStats {
+  id                String   @id @default(cuid())
+  teacherId         String
+  startDate         DateTime
+  endDate           DateTime
+  plannedActivities Int      @default(0)
+  activities        Int      @default(0)
+  observations      Int      @default(0)
+  evaluations       Int      @default(0)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([teacherId])
+}
+
+model ObjectiveLevels {
+  levelId     String
+  objectiveId String
+  Levels      Levels     @relation(fields: [levelId], references: [id], onDelete: Cascade)
+  Objectives  Objectives @relation(fields: [objectiveId], references: [id], onDelete: Cascade)
+
+  @@unique([objectiveId, levelId], map: "_ObjectiveLevels_AB_unique")
+  @@index([levelId], map: "_ObjectiveLevels_B_index")
+  @@map("_ObjectiveLevels")
+}
+
+model users {
+  id                                                     String                         @id @default(cuid())
+  email                                                  String?                        @unique
+  emailVerified                                          DateTime?
+  password                                               String?
+  firstName                                              String?
+  lastName                                               String?
+  phoneNumber                                            String?
+  country                                                String?
+  role                                                   String?
+  plan                                                   String?
+  reference                                              String?
+  trialStartedAt                                         DateTime?
+  trialEndsAt                                            DateTime?
+  paymentStartedAt                                       DateTime?
+  nextPaymentDate                                        DateTime?
+  selectedFreeTrialPlan                                  String?
+  seenActivities                                         String[]                       @default([])
+  classrooms                                             String[]                       @default([])
+  deletedAt                                              DateTime?
+  createdAt                                              DateTime                       @default(now())
+  updatedAt                                              DateTime                       @updatedAt
+  institutionId                                          String?
+  Account                                                Account[]
+  Activities_Activities_creatorIdTousers                 Activities[]                   @relation("Activities_creatorIdTousers")
+  Activities_Activities_updatedByIdTousers               Activities[]                   @relation("Activities_updatedByIdTousers")
+  Attendances                                            Attendances[]
+  Classes                                                Classes[]
+  DownloadedStudentsReports                              DownloadedStudentsReports[]
+  Evaluations_Evaluations_teacherIdTousers               Evaluations[]                  @relation("Evaluations_teacherIdTousers")
+  Evaluations_Evaluations_updatedByIdTousers             Evaluations[]                  @relation("Evaluations_updatedByIdTousers")
+  Objectives                                             Objectives[]
+  Observations                                           Observations[]
+  OpenAIApiCalls                                         OpenAIApiCalls[]
+  PMFAnswers                                             PMFAnswers[]
+  PlannedActivities_PlannedActivities_deletedByIdTousers PlannedActivities[]            @relation("PlannedActivities_deletedByIdTousers")
+  PlannedActivities_PlannedActivities_teacherIdTousers   PlannedActivities[]            @relation("PlannedActivities_teacherIdTousers")
+  PlannedActivitiesEvaluations                           PlannedActivitiesEvaluations[]
+  Referrals_Referrals_referredIdTousers                  Referrals[]                    @relation("Referrals_referredIdTousers")
+  Referrals_Referrals_referrerIdTousers                  Referrals[]                    @relation("Referrals_referrerIdTousers")
+  Reports_Reports_teacherIdTousers                       Reports[]                      @relation("Reports_teacherIdTousers")
+  Session                                                Session[]
+  SubObjectives                                          SubObjectives[]
+  SubObjectivesEvaluations                               SubObjectivesEvaluations[]
+  Institutions                                           Institutions?                  @relation(fields: [institutionId], references: [id])
+  Reports_UpdatedBy                                      Reports[]                      @relation("UpdatedBy")
+
+  @@index([email])
+  @@index([institutionId])
+  @@index([role, institutionId])
+}

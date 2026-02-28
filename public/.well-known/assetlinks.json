@@ -1,0 +1,6 @@
+[{
+        "relation": ["delegate_permission/common.handle_all_urls"],
+        "target" : { "namespace": "android_app", "package_name": "cl.unga.app",
+                     "sha256_cert_fingerprints": ["30:77:C3:90:B4:65:1F:96:89:59:B0:34:AF:BD:1B:F1:B1:4A:75:90:74:33:0A:90:09:F0:11:EA:30:50:48:FE"] }
+      }
+]

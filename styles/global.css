@@ -1,0 +1,42 @@
+body{
+  -webkit-print-color-adjust:exact !important;
+  print-color-adjust: exact !important;
+}
+
+@font-face {
+  font-family: "Averta";
+  src: url('../fonts/averta/averta-regular-webfont.ttf');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Averta";
+  src: url('../fonts/averta/averta-bold-webfont.ttf');
+  font-weight: bold;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Averta";
+  src: url('../fonts/averta/averta-regularitalic-webfont.ttf');
+  font-weight: normal;
+  font-style: italic;
+}
+
+@media screen {
+  #report-print-header {
+    display: none;
+  }
+}
+@media print {
+  #report-print-header {
+    display: flex;
+  }
+  .page-break-after {
+    page-break-after: always;
+  }
+  .page-break-before {
+    page-break-before: always;
+  }
+}
