@@ -185,7 +185,12 @@ function main() {
   const teachersMap = new Map();
   const usedEmails = new Set();
 
+  // Skip hidden sheets that may not be visible in Excel
+  const sheetsToSkip = ['MMAA Actual', 'MMAB Actual ', 'MMAC Actual'];
+  
   for (const sheetName of workbook.SheetNames) {
+    if (sheetsToSkip.includes(sheetName)) continue;
+    
     const sheet = workbook.Sheets[sheetName];
     const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
     if (!rows || rows.length === 0) continue;
