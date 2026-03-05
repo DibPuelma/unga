@@ -250,7 +250,7 @@ export default function ObjectivesTable({
       label: (
         <Stack width={150}>
           <Typography variant="body2" fontWeight={500}>{classroom.name}</Typography>
-          <Typography variant="caption">{classroom.level.name}</Typography>
+          <Typography variant="caption">{classroom.level?.name || classroom.levelName || '-'}</Typography>
         </Stack>
       ),
       sortable: true,
