@@ -103,16 +103,6 @@ export default function Login() {
             Ingresar
           </LoadingButton>
         </form>
-        <Box mt={1}>
-          <Link
-            noLinkStyle
-            sx={{ width: '100%' }}
-            href="/auth/register">
-            <Button fullWidth variant="outlined">
-              Registrarme
-            </Button>
-          </Link>
-        </Box>
         <Box mt={2}>
           <Link href="/auth/forgot-password">
             <Typography component="div" variant="caption" textAlign="center">
