@@ -35,6 +35,13 @@ export default function GeneralConfiguration({ onSave, loading }) {
     handleDataChange({ target: { name: 'logo', value: logo } });
   }
 
+  const hasLogoPreview = (logo) => {
+    if (!logo) return false;
+    if (typeof logo === 'string') return true;
+
+    return !!(logo.url || logo.secure_url);
+  };
+
   const handleSave = () => {
     const body = institutionFormData;
 
@@ -49,7 +56,7 @@ export default function GeneralConfiguration({ onSave, loading }) {
           <Stack spacing={2} width={{ xs: '100%', sm: '50%' }}>
             <Stack alignItems="flex-start" spacing={1}>
               <Typography fontSize={14} gutterBottom>Logo</Typography>
-              {institutionFormData.logo?.url && (
+              {hasLogoPreview(institutionFormData.logo) && (
                 <UngaRatioImage image={institutionFormData.logo} />
               )}
               <CloudinaryUploadWidget

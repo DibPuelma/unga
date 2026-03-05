@@ -3,10 +3,36 @@ import { createBaseCoresForInstitution } from './core';
 import { createBaseLevelsOfAchievementForInstitution } from './levelsOfAchievement';
 import { EXISTING_FEATURES } from './feature';
 
+const normalizeLogoForWrite = (logo) => {
+  if (logo === undefined) return undefined;
+  if (logo === null) return null;
+
+  if (typeof logo === 'string') return logo;
+  if (typeof logo === 'object') return JSON.stringify(logo);
+
+  return null;
+};
+
+const normalizeLogoForRead = (logo) => {
+  if (!logo) return logo;
+  if (typeof logo === 'object') return logo;
+  if (typeof logo !== 'string') return null;
+
+  try {
+    return JSON.parse(logo);
+  } catch (_) {
+    return logo;
+  }
+};
+
 export const getInstitution = async (institutionId) => {
   const institution = await prisma.institutions.findUnique({
     where: { id: institutionId },
   });
+
+  if (!institution) return null;
+
+  institution.logo = normalizeLogoForRead(institution.logo);
 
   return JSON.parse(JSON.stringify(institution));
 };
@@ -24,6 +50,8 @@ export const getInstitutionWithConfiguration = async (institutionId) => {
   });
 
   if (!institution) return null;
+
+  institution.logo = normalizeLogoForRead(institution.logo);
 
   const config = institution.configuration || {};
   const principal = config.employeesRoles?.principal
@@ -70,6 +98,8 @@ export const getInstitutionWithStructure = async (institutionId) => {
   });
 
   if (!institution) return null;
+
+  institution.logo = normalizeLogoForRead(institution.logo);
 
   // Transform to lowercase for backward compatibility
   const result = {
@@ -129,6 +159,8 @@ export const updateInstitution = async (institutionId, {
   logo,
   features,
 }) => {
+  const normalizedLogo = normalizeLogoForWrite(logo);
+
   if (configuration) {
     if (configuration.employeesRoles?.coordinator) {
       const institution = await getInstitution(institutionId);
@@ -159,7 +191,7 @@ export const updateInstitution = async (institutionId, {
         mobilePhone,
         email,
         webpage,
-        logo,
+        logo: normalizedLogo,
         features,
     },
   });

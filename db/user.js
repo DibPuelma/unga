@@ -6,6 +6,20 @@ import { getReferralOfUser, updateReferral } from './referral';
 import SendAddRoleToUserSlackMessage from 'commands/slack/sendAddRoleToUserSlackMessage';
 import SendNewUserSlackMessage from 'commands/slack/sendNewUserSlackMessage';
 
+const normalizeInstitutionLogoForRead = (institution) => {
+  if (!institution) return institution;
+  const { logo } = institution;
+
+  if (!logo || typeof logo === 'object') return institution;
+  if (typeof logo !== 'string') return { ...institution, logo: null };
+
+  try {
+    return { ...institution, logo: JSON.parse(logo) };
+  } catch (_) {
+    return institution;
+  }
+};
+
 export const createUser = async ({
   firstName,
   lastName,
@@ -45,7 +59,7 @@ export const createUser = async ({
 
   const result = {
     ...newUser,
-    institution: newUser.Institutions,
+    institution: normalizeInstitutionLogoForRead(newUser.Institutions),
     institutionName: newUser.Institutions?.name || null,
   };
 
@@ -134,7 +148,7 @@ export const getUserData = async (userId) => {
   // Map Institutions to institution for backward compatibility
   return {
     ...user,
-    institution: user.Institutions,
+    institution: normalizeInstitutionLogoForRead(user.Institutions),
   };
 }
 
@@ -224,7 +238,7 @@ export const getAllTeachers = async () => {
 
       return {
         ...user,
-        institution: user.Institutions,
+        institution: normalizeInstitutionLogoForRead(user.Institutions),
         classrooms: validClassrooms.map(c => ({
           ...c,
           students: c._count.students,
