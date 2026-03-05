@@ -9,6 +9,7 @@ export default async (req, res) => {
   if (req.method == 'GET') {
     const { methodology, institutionId: queryInstitutionId } = req.query;
     const institutionId = queryInstitutionId || session.user?.institution?.id || session.user?.institutionId;
+    const institutionCountry = session.user?.institution?.countryCode || session.user?.institution?.country;
     
     if (!institutionId) {
       return res.status(400).json({ error: 'Institution ID is required' });
@@ -16,9 +17,9 @@ export default async (req, res) => {
 
     let curricularObjectives = null;
     if (methodology && methodology !== 'undefined') {
-      curricularObjectives = await getCurricularObjectivesByCountryAndMethodology('Chile', methodology, institutionId);
+      curricularObjectives = await getCurricularObjectivesByCountryAndMethodology(institutionCountry, methodology, institutionId);
     } else {
-      curricularObjectives = await getCurricularObjectivesByCountry('Chile', institutionId);
+      curricularObjectives = await getCurricularObjectivesByCountry(institutionCountry, institutionId);
     }
     res.status(200).json(curricularObjectives);
   }

@@ -1,11 +1,32 @@
 import prisma from './prisma';
 
+const COUNTRY_ALIASES = {
+  cl: ['cl', 'chile'],
+  chile: ['cl', 'chile'],
+  mx: ['mx', 'mexico', 'méxico'],
+  mexico: ['mx', 'mexico', 'méxico'],
+  'méxico': ['mx', 'mexico', 'méxico'],
+};
+
+const getCountryVariants = (country) => {
+  if (!country) return [];
+  const normalizedCountry = String(country).trim().toLowerCase();
+  const aliases = COUNTRY_ALIASES[normalizedCountry] || [normalizedCountry];
+  return [...new Set(aliases)];
+};
+
 export const getCurricularObjectivesByCountry = async (country, institutionId) => {
+  const countryVariants = getCountryVariants(country);
+  const whereClause = {
+    institutionId,
+  };
+
+  if (countryVariants.length > 0) {
+    whereClause.country = { in: countryVariants };
+  }
+
   const objectives = await prisma.curricularObjectives.findMany({
-    where: { 
-      country,
-      institutionId,
-    },
+    where: whereClause,
     include: {
       Levels: true,
       Cores: true,
@@ -21,12 +42,18 @@ export const getCurricularObjectivesByCountry = async (country, institutionId) =
 }
 
 export const getCurricularObjectivesByCountryAndMethodology = async (country, methodology, institutionId) => {
+  const countryVariants = getCountryVariants(country);
+  const whereClause = {
+    methodology,
+    institutionId,
+  };
+
+  if (countryVariants.length > 0) {
+    whereClause.country = { in: countryVariants };
+  }
+
   const objectives = await prisma.curricularObjectives.findMany({
-    where: {
-      country,
-      methodology,
-      institutionId,
-    },
+    where: whereClause,
     include: {
       Levels: true,
       Cores: true,
