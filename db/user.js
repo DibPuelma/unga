@@ -123,6 +123,10 @@ export const updateUser = async (userId, data) => {
     delete updateData.sawActivity;
   }
 
+  if (data.password) {
+    updateData.password = await bcrypt.hash(data.password, 10);
+  }
+
   const updatedUser = await prisma.users.update({
     where: { id: userId },
     data: updateData,

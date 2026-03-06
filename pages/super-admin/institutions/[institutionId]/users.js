@@ -1,4 +1,4 @@
-import { Box, Breadcrumbs, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TableSortLabel, Typography } from "@mui/material";
+import { Alert, Box, Breadcrumbs, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, InputAdornment, Snackbar, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TableSortLabel, TextField, Typography } from "@mui/material";
 import { getAllInstitutionUsers } from "db/user";
 import { useState } from "react";
 import { isAuthorized } from "services/Authorization";
@@ -8,6 +8,9 @@ import { serializeForNextProps } from "src/helpers/businessLogic";
 import { getInstitution } from "db/institution";
 import Head from "next/head";
 import Link from "next/link";
+import axios from "axios";
+import { LoadingButton } from "@mui/lab";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
 
 export async function getServerSideProps(context) {
   const [isAuthorizedValue, returnValue] = await isAuthorized(context);
@@ -132,6 +135,7 @@ function EnhancedTableHead(props) {
             </TableSortLabel>
           </TableCell>
         ))}
+        <TableCell align="right">Acciones</TableCell>
       </TableRow>
     </TableHead>
   );
@@ -140,11 +144,62 @@ function EnhancedTableHead(props) {
 export default function InstitutionUsers({ rows, institution, institutionId }) {
   const [order, setOrder] = useState('asc');
   const [orderBy, setOrderBy] = useState('name');
+  const [passwordDialog, setPasswordDialog] = useState({
+    open: false,
+    userId: '',
+    userName: '',
+  });
+  const [newPassword, setNewPassword] = useState('');
+  const [repeatPassword, setRepeatPassword] = useState('');
+  const [changePasswordError, setChangePasswordError] = useState('');
+  const [changePasswordSuccess, setChangePasswordSuccess] = useState(false);
+  const [changePasswordLoading, setChangePasswordLoading] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showRepeatPassword, setShowRepeatPassword] = useState(false);
 
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === 'asc';
     setOrder(isAsc ? 'desc' : 'asc');
     setOrderBy(property);
+  };
+
+  const openChangePasswordDialog = (userId, userName) => {
+    setChangePasswordError('');
+    setNewPassword('');
+    setRepeatPassword('');
+    setShowNewPassword(false);
+    setShowRepeatPassword(false);
+    setPasswordDialog({ open: true, userId, userName });
+  };
+
+  const closeChangePasswordDialog = () => {
+    setPasswordDialog({ open: false, userId: '', userName: '' });
+  };
+
+  const handleChangePassword = async () => {
+    if (!newPassword || !repeatPassword) {
+      setChangePasswordError('Debes completar ambos campos.');
+      return;
+    }
+
+    if (newPassword !== repeatPassword) {
+      setChangePasswordError('Las contraseñas no coinciden.');
+      return;
+    }
+
+    try {
+      setChangePasswordLoading(true);
+      setChangePasswordError('');
+      await axios.patch(`/api/users/${passwordDialog.userId}`, {
+        password: newPassword,
+      });
+      setChangePasswordSuccess(true);
+      closeChangePasswordDialog();
+    } catch (e) {
+      setChangePasswordError('No se pudo actualizar la contraseña.');
+    } finally {
+      setChangePasswordLoading(false);
+    }
   };
 
   return (
@@ -204,12 +259,104 @@ export default function InstitutionUsers({ rows, institution, institutionId }) {
                       <TableCell>{row.role}</TableCell>
                       <TableCell>{row.phoneNumber}</TableCell>
                       <TableCell>{row.createdAt}</TableCell>
+                      <TableCell align="right">
+                        <LoadingButton
+                          variant="outlined"
+                          size="small"
+                          onClick={() => openChangePasswordDialog(row.id, row.name)}
+                        >
+                          Cambiar contraseña
+                        </LoadingButton>
+                      </TableCell>
                     </TableRow>
                   );
                 })}
             </TableBody>
           </Table>
         </TableContainer>
+        <Dialog open={passwordDialog.open} onClose={closeChangePasswordDialog} maxWidth="xs" fullWidth>
+          <DialogTitle>Cambiar contraseña</DialogTitle>
+          <DialogContent>
+            <Typography variant="body2" sx={{ mb: 2 }}>
+              Usuario: {passwordDialog.userName || '-'}
+            </Typography>
+            <TextField
+              fullWidth
+              variant="outlined"
+              label="Nueva contraseña"
+              type={showNewPassword ? "text" : "password"}
+              value={newPassword}
+              onChange={(event) => setNewPassword(event.target.value)}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      aria-label={showNewPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                      onClick={() => setShowNewPassword((value) => !value)}
+                      edge="end"
+                    >
+                      {showNewPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+              sx={{ mb: 2 }}
+            />
+            <TextField
+              fullWidth
+              variant="outlined"
+              label="Repetir nueva contraseña"
+              type={showRepeatPassword ? "text" : "password"}
+              value={repeatPassword}
+              onChange={(event) => setRepeatPassword(event.target.value)}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      aria-label={showRepeatPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                      onClick={() => setShowRepeatPassword((value) => !value)}
+                      edge="end"
+                    >
+                      {showRepeatPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+            />
+            {Boolean(changePasswordError) && (
+              <Typography component="div" color="error" variant="caption" sx={{ mt: 1 }}>
+                {changePasswordError}
+              </Typography>
+            )}
+          </DialogContent>
+          <DialogActions>
+            <LoadingButton
+              variant="text"
+              color="inherit"
+              onClick={closeChangePasswordDialog}
+              disabled={changePasswordLoading}
+            >
+              Cancelar
+            </LoadingButton>
+            <LoadingButton
+              variant="contained"
+              onClick={handleChangePassword}
+              loading={changePasswordLoading}
+            >
+              Guardar
+            </LoadingButton>
+          </DialogActions>
+        </Dialog>
+        <Snackbar
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+          open={changePasswordSuccess}
+          autoHideDuration={5000}
+          onClose={() => setChangePasswordSuccess(false)}
+        >
+          <Alert onClose={() => setChangePasswordSuccess(false)} severity="success" sx={{ width: '100%' }}>
+            Contraseña actualizada con éxito
+          </Alert>
+        </Snackbar>
       </Box>
     </>
   );

@@ -8,8 +8,14 @@ export default async (req, res) => {
   const { query: { userId }, body } = req;
   if (req.method === 'PATCH') {
     let query;
-    const { user, user: { institution } } = await getServerSession(req, res, authOptions);
-    if (user.id === userId || user.role === 'super-admin') {
+    const session = await getServerSession(req, res, authOptions);
+    const user = session?.user;
+    const institutionId = user?.institution?.id;
+
+    if (!user) return res.status(401).end();
+
+    const isSuperAdmin = user.role === 'superAdmin' || user.role === 'super-admin';
+    if (user.id === userId || isSuperAdmin) {
       if (body.role) {
         if (body.role === 'teacher') sendTeacherWelcomeEmail(user);
         else if (body.role === 'parent') sendParentWelcomeEmail(user);
@@ -19,7 +25,9 @@ export default async (req, res) => {
     }
 
     const userToUpdate = await getUserData(userId);
-    if (userToUpdate.institution.id === institution.id) {
+    if (!userToUpdate) return res.status(404).end();
+
+    if (userToUpdate.institution?.id && institutionId && userToUpdate.institution.id === institutionId) {
       query = await updateUser(userId, body);
       return res.status(200).json(serializeForAPI(query));
     }
