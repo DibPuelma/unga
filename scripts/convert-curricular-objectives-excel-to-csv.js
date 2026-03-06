@@ -279,14 +279,73 @@ function parseFormat2Sheet(rows, context) {
   return parsed;
 }
 
-function parseSheet(rows, sheetName) {
+function hasStandaloneOAMarkers(rows) {
+  for (const row of rows) {
+    const colA = cleanText(row[0] || '');
+    if (/^\s*OA\s*\d+\s*\|?\s*$/i.test(colA)) return true;
+  }
+  return false;
+}
+
+function parseFormat3Sheet(rows, context) {
+  const { coreName, defaultLevels } = context;
+  const parsed = [];
+  let currentCurricularName = '';
+
+  for (let r = 0; r < rows.length; r += 1) {
+    const row = rows[r] || [];
+    const colA = cleanText(row[0]);
+    const colB = cleanText(row[1]);
+
+    if (!colA && !colB) continue;
+    if (/^\s*OA\s*\d+\s*\|?\s*$/i.test(colA)) continue;
+    if (/n[úuù]cleo/i.test(colA)) continue;
+
+    if (colA) {
+      currentCurricularName = removeNumericPrefix(colA);
+    }
+
+    if (colB && currentCurricularName) {
+      const objectiveName = removeNumericPrefix(colB);
+      if (objectiveName) {
+        parsed.push({
+          coreName,
+          curricularObjectiveName: currentCurricularName,
+          objectiveName,
+          levelNames: defaultLevels,
+          position: extractLeadingPosition(colB),
+        });
+      }
+    }
+  }
+
+  return parsed;
+}
+
+function parseSheet(rows, sheetName, fileName) {
   const coreName = extractCoreName(rows, sheetName);
-  const defaultLevels = extractSheetDefaultLevels(rows, sheetName);
+  let defaultLevels = extractSheetDefaultLevels(rows, sheetName);
+
+  if (defaultLevels.length === 0 && fileName) {
+    const fileKey = normalizeKey(fileName);
+    if (fileKey.includes('niveles medios')) {
+      defaultLevels = ['Nivel Medio Menor', 'Nivel Medio Mayor'];
+    } else {
+      const fileLevelMapped = mapLevelName(fileName);
+      if (fileLevelMapped) defaultLevels = [fileLevelMapped];
+    }
+  }
+
+  const context = { coreName, defaultLevels };
+
+  if (hasStandaloneOAMarkers(rows)) {
+    return parseFormat3Sheet(rows, context);
+  }
+
   const hasBCePHeader = !!findFirstCellContaining(rows, 'Objetivos de aprendizaje B.C.E.P');
   const hasNucleoLabel = !!findFirstCellContaining(rows, 'NÚCLEO:');
   const isFormat1 = hasBCePHeader || hasNucleoLabel;
 
-  const context = { coreName, defaultLevels };
   if (isFormat1) {
     return parseFormat1Sheet(rows, context);
   }
@@ -322,7 +381,7 @@ function main() {
       const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
       if (!rows || rows.length === 0) continue;
 
-      const parsedRows = parseSheet(rows, sheetName);
+      const parsedRows = parseSheet(rows, sheetName, path.basename(filePath));
       for (const item of parsedRows) {
         const curricularKey = `${normalizeKey(item.coreName)}||${normalizeKey(item.curricularObjectiveName)}`;
         if (!curricularMap.has(curricularKey)) {
