@@ -335,8 +335,9 @@ export default function Report({
     if (!student.birthDate) return null;
 
     const birthDate = student.birthDate;
-    const years = reportDate.diff(moment(birthDate), 'years')
-    const months = reportDate.diff(moment(birthDate), 'months') - 12 * years;
+    const normalizedBirthDate = moment.utc(birthDate);
+    const years = reportDate.diff(normalizedBirthDate, 'years')
+    const months = reportDate.diff(normalizedBirthDate, 'months') - 12 * years;
     let yearsText = 'años y ';
     let monthsText = 'meses';
     if (years === 1) yearsText = 'año y ';
@@ -344,7 +345,7 @@ export default function Report({
     return (
       <>
         <Typography>
-          Fecha de nacimiento: {moment(birthDate).format('DD [de] MMMM [de] YYYY')}
+          Fecha de nacimiento: {normalizedBirthDate.format('DD [de] MMMM [de] YYYY')}
         </Typography>
         <Typography>
           Edad: {years} {yearsText} {months} {monthsText}

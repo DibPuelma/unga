@@ -52,7 +52,7 @@ export default function StudentConfigureItem({ student, onUpdate, onSelect, sele
             {dynamicStudent.birthDate && (
               <Stack direction="row" alignItems="center" spacing={0.5}>
                 <Event fontSize='10px' />
-                <Typography variant="caption">{moment(dynamicStudent.birthDate).format('DD [de] MMM [de] YYYY')}</Typography>
+                <Typography variant="caption">{moment.utc(dynamicStudent.birthDate).format('DD [de] MMM [de] YYYY')}</Typography>
               </Stack>
             )}
             {dynamicStudent.rut && (

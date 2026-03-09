@@ -38,7 +38,7 @@ function studentToRow(student) {
     firstName: student.firstName,
     lastName: student.lastName,
     birthDate: student.birthDate ?
-      moment(student.birthDate).format('DD [de] MMMM [de] YYYY') :
+      moment.utc(student.birthDate).format('DD [de] MMMM [de] YYYY') :
       'Sin fecha de nacimiento',
     sortableBirthDate: student.birthDate || '',
     rut: student.rut || 'Sin RUT',

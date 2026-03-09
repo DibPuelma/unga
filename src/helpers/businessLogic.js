@@ -103,9 +103,9 @@ export const noInstitution = (user) => !user || !user.institution
 
 export const cleanDateToSendToDB = (date) => {
   if (!date) return null;
-  if (date.format) return date.format('yyyy-MM-DD');
+  if (date.format) return date.format('YYYY-MM-DD');
   // Prisma expects Date objects or ISO strings
-  if (date instanceof Date) return date.toISOString().split('T')[0];
+  if (date instanceof Date) return moment.utc(date).format('YYYY-MM-DD');
   if (typeof date === 'string') return date;
 
   return null;
@@ -115,8 +115,8 @@ export const cleanDateForFrontend = (date) => {
   if (!date) return null;
   if (date.format) return date;
   // Prisma returns Date objects or ISO strings
-  if (date instanceof Date) return moment(date);
-  if (typeof date === 'string') return moment(date);
+  if (date instanceof Date) return moment.utc(date);
+  if (typeof date === 'string') return moment.utc(date);
 
   return null;
 }

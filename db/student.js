@@ -1,5 +1,14 @@
 import prisma from './prisma';
 
+const parseBirthDate = (birthDate) => {
+  if (!birthDate) return null;
+  if (birthDate instanceof Date) return birthDate;
+  if (typeof birthDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(birthDate)) {
+    return new Date(`${birthDate}T00:00:00.000Z`);
+  }
+  return new Date(birthDate);
+};
+
 export const createStudent = async (data) => {
   const {
     firstName,
@@ -15,7 +24,7 @@ export const createStudent = async (data) => {
       firstName,
       lastName,
       rut: rut || null,
-      birthDate: birthDate ? new Date(birthDate) : null,
+      birthDate: parseBirthDate(birthDate),
       classId: classroom,
       institutionId: institution,
     },
@@ -36,7 +45,7 @@ export const updateStudent = async (id, data) => {
   if (data.firstName) updateData.firstName = data.firstName;
   if (data.lastName) updateData.lastName = data.lastName;
   if (data.rut !== undefined) updateData.rut = data.rut || null;
-  if (data.birthDate) updateData.birthDate = new Date(data.birthDate);
+  if (data.birthDate) updateData.birthDate = parseBirthDate(data.birthDate);
   if (data.classroom) updateData.classId = data.classroom;
   if (data.profilePicture) updateData.profilePicture = data.profilePicture;
 

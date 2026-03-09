@@ -34,7 +34,7 @@ export default function StudentListItem({ student, paper }) {
               <Event fontSize='10px' />
               <Typography variant="caption">{
                 student.birthDate ?
-                  moment(student.birthDate).format('DD [de] MMM [de] YYYY') :
+                  moment.utc(student.birthDate).format('DD [de] MMM [de] YYYY') :
                   'Sin fecha de nacimiento'
               }
               </Typography>

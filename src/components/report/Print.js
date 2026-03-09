@@ -47,8 +47,9 @@ export default function PrintReport({
     if (!student.birthDate) return null;
 
     const birthDate = student.birthDate;
-    const years = reportDate.diff(moment(birthDate), 'years')
-    const months = reportDate.diff(moment(birthDate), 'months') - 12 * years;
+    const normalizedBirthDate = moment.utc(birthDate);
+    const years = reportDate.diff(normalizedBirthDate, 'years')
+    const months = reportDate.diff(normalizedBirthDate, 'months') - 12 * years;
     let yearsText = 'años y ';
     let monthsText = 'meses';
     if (years === 1) yearsText = 'año y ';
@@ -58,7 +59,7 @@ export default function PrintReport({
         <Stack direction="row" alignItems="center" spacing={1}>
           <CakeOutlined color="primary" fontSize="small" />
           <Typography>
-            {moment(birthDate).format('DD [de] MMMM [de] YYYY')}
+            {normalizedBirthDate.format('DD [de] MMMM [de] YYYY')}
           </Typography>
         </Stack>
         <Stack direction="row" alignItems="center" spacing={1}>
