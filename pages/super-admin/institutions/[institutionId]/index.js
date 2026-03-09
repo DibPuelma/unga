@@ -152,6 +152,7 @@ function UploadSection({ title, uploadEndpoint, templateEndpoint, institutionId 
 export default function InstitutionDetail({ institution, institutionId }) {
   const navigationLinks = [
     { label: 'Usuarios', href: `/super-admin/institutions/${institutionId}/users` },
+    { label: 'Estudiantes', href: `/super-admin/institutions/${institutionId}/students` },
     { label: 'Salas', href: `/super-admin/institutions/${institutionId}/classrooms` },
     { label: 'Núcleos', href: `/super-admin/institutions/${institutionId}/cores` },
     { label: 'Niveles de Logro', href: `/super-admin/institutions/${institutionId}/levels-of-achievement` },
