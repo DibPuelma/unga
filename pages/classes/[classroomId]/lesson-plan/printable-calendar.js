@@ -69,7 +69,7 @@ export default function PrintableLessonPlanCalendar({
     const newPlannedActivitiesPerDay = {};
     moment.weekdays().slice(1, -1).forEach((workDay) => {
       newPlannedActivitiesPerDay[workDay] = plannedActivities.filter(
-        (pa) => workDay === moment(pa.plannedDate).format('dddd')
+        (pa) => workDay === moment.utc(pa.plannedDate).format('dddd')
       );
     })
     setPlannedActivitiesPerDay(newPlannedActivitiesPerDay);

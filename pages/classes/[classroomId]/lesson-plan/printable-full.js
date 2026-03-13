@@ -149,7 +149,7 @@ export default function PrintableLessonPlanFull({
     
     // Distribute activities by matching their dates
     plannedActivities?.forEach((pa) => {
-      const plannedDateStr = moment(pa.plannedDate).startOf('day').format('YYYY-MM-DD');
+      const plannedDateStr = moment.utc(pa.plannedDate).format('YYYY-MM-DD');
       const workDay = dateToWorkDayMap[plannedDateStr];
       if (workDay && newPlannedActivitiesPerDay[workDay]) {
         newPlannedActivitiesPerDay[workDay].push(pa);
