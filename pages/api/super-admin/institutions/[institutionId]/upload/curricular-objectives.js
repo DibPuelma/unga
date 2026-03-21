@@ -144,6 +144,34 @@ function calculateSimilarity(str1, str2) {
   return 1 - (distance / maxLength);
 }
 
+/**
+ * Same normalization pipeline as objectives upload (`objectives.js`) so uniqueness
+ * keys match across both flows. Uses curricular name cleaning for the first step.
+ */
+function normalizeTextForComparison(text) {
+  if (!text) return '';
+
+  let normalized = cleanCurricularObjectiveName(fixPotentialMojibake(text));
+  normalized = normalized.replace(/\s+/g, ' ');
+  normalized = normalized
+    .replace(/[\u00B4`'’‘]/g, '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+  normalized = normalized.replace(/[^a-zA-Z0-9\s]/g, ' ');
+  normalized = normalized.replace(/\s+/g, ' ').trim();
+  normalized = normalized.toLowerCase();
+
+  return normalized;
+}
+
+function buildCurricularObjectiveUniquenessKey({ name, coreId, levelIds }) {
+  const normalizedName = normalizeTextForComparison(name);
+  const normalizedLevelIds =
+    levelIds && levelIds.length > 0 ? [...new Set(levelIds)].sort().join(',') : 'null';
+
+  return `${coreId}::${normalizedName}::${normalizedLevelIds}`;
+}
+
 function findBestMatchingCore(rawCoreName, cores) {
   const normalizedInput = normalizeTextForLookup(rawCoreName);
   const normalizedInputSingular = normalizeCoreNameForLookup(rawCoreName);
@@ -234,10 +262,26 @@ export default async function handler(req, res) {
     });
     const allLevels = await prisma.levels.findMany();
 
+    const existingCurricularObjectives = await prisma.curricularObjectives.findMany({
+      where: { institutionId },
+      include: { Levels: true },
+    });
+
     const results = {
       successful: [],
       failed: [],
     };
+
+    const queuedCurricularKeys = new Set();
+    const existingCurricularKeys = new Set(
+      existingCurricularObjectives.map((co) =>
+        buildCurricularObjectiveUniquenessKey({
+          name: co.name,
+          coreId: co.coreId,
+          levelIds: co.Levels.map((l) => l.id),
+        })
+      )
+    );
 
     for (let i = 0; i < rows.length; i++) {
       const row = rows[i];
@@ -294,15 +338,11 @@ export default async function handler(req, res) {
         const country = fixPotentialMojibake(row.country)?.trim() || null;
         const methodology = fixPotentialMojibake(row.methodology)?.trim() || null;
 
-        // Parse levels if provided
-        let levelIds = null; // null means don't update levels, [] means clear levels
+        // Levels: same semantics as objectives upload — always an array (empty = no levels).
+        let levelIds = [];
         if (row.levels !== undefined && row.levels !== null) {
           const levelsValue = fixPotentialMojibake(row.levels).toString().trim();
-          if (levelsValue === '') {
-            // Empty string means clear all levels
-            levelIds = [];
-          } else {
-            // Parse level names
+          if (levelsValue !== '') {
             const levelNames = levelsValue
               .split(',')
               .map((levelName) => fixPotentialMojibake(levelName).trim())
@@ -315,8 +355,7 @@ export default async function handler(req, res) {
                 )
               )
               .map((l) => l.id);
-            
-            // Check if any levels were not found
+
             const foundLevelNames = allLevels
               .filter((l) =>
                 levelNames.some(
@@ -331,7 +370,7 @@ export default async function handler(req, res) {
                   (found) => normalizeTextForLookup(found) === normalizeTextForLookup(levelName)
                 )
             );
-            
+
             if (notFoundLevels.length > 0 && levelIds.length === 0) {
               results.failed.push({
                 row: rowNumber,
@@ -343,88 +382,53 @@ export default async function handler(req, res) {
           }
         }
 
-        // Check if CurricularObjective already exists (by name and coreId)
-        const existing = await prisma.curricularObjectives.findFirst({
-          where: {
+        const curricularUniquenessKey = buildCurricularObjectiveUniquenessKey({
+          name,
+          coreId: core.id,
+          levelIds,
+        });
+
+        if (
+          existingCurricularKeys.has(curricularUniquenessKey) ||
+          queuedCurricularKeys.has(curricularUniquenessKey)
+        ) {
+          results.failed.push({
+            row: rowNumber,
             name: name,
-            coreId: core.id,
-          },
+            error:
+              'Objetivo curricular duplicado (mismo nombre, núcleo y niveles), omitido',
+          });
+          continue;
+        }
+
+        queuedCurricularKeys.add(curricularUniquenessKey);
+
+        const createData = {
+          name: name,
+          country: country,
+          methodology: methodology,
+          institutionId: institutionId,
+          coreId: core.id,
+        };
+
+        if (levelIds.length > 0) {
+          createData.Levels = {
+            connect: levelIds.map((id) => ({ id })),
+          };
+        }
+
+        const created = await prisma.curricularObjectives.create({
+          data: createData,
           include: {
             Levels: true,
           },
         });
 
-        if (existing) {
-          // Update existing CurricularObjective
-          const updateData = {
-            name: name,
-            country: country,
-            methodology: methodology,
-            institutionId: institutionId,
-            coreId: core.id,
-          };
-          
-          // Only update levels if they were provided in the Excel
-          if (levelIds !== null) {
-            if (levelIds.length === 0) {
-              // Empty array means clear all levels
-              updateData.Levels = {
-                set: [],
-              };
-            } else {
-              // Merge new levels with existing levels to support duplicates with different levels
-              const existingLevelIds = existing.Levels.map((l) => l.id);
-              const mergedLevelIds = [...new Set([...existingLevelIds, ...levelIds])];
-              
-              updateData.Levels = {
-                set: mergedLevelIds.map((id) => ({ id })),
-              };
-            }
-          }
-          
-          const updated = await prisma.curricularObjectives.update({
-            where: { id: existing.id },
-            data: updateData,
-            include: {
-              Levels: true,
-            },
-          });
-
-          results.successful.push({
-            row: rowNumber,
-            name: updated.name,
-            action: 'actualizado',
-          });
-        } else {
-          // Create new CurricularObjective
-          const createData = {
-            name: name,
-            country: country,
-            methodology: methodology,
-            institutionId: institutionId,
-            coreId: core.id,
-          };
-          
-          // Connect levels if provided
-          if (levelIds !== null && levelIds.length > 0) {
-            createData.Levels = {
-              connect: levelIds.map((id) => ({ id })),
-            };
-          }
-          
-          const created = await prisma.curricularObjectives.create({
-            data: createData,
-            include: {
-              Levels: true,
-            },
-          });
-
-          results.successful.push({
-            row: rowNumber,
-            name: created.name,
-            action: 'creado',
-          });
-        }
+        results.successful.push({
+          row: rowNumber,
+          name: created.name,
+          action: 'creado',
+        });
       } catch (error) {
         results.failed.push({
           row: rowNumber,
