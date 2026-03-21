@@ -50,7 +50,7 @@
     "openai": "^3.2.1",
     "papaparse": "^5.4.1",
     "prop-types": "latest",
-    "puppeteer": "^20.7.1",
+    "puppeteer-core": "20.7.1",
     "react": "latest",
     "react-beautiful-dnd": "^13.1.1",
     "react-chartjs-2": "^4.0.1",

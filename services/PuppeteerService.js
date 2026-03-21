@@ -1,4 +1,4 @@
-import puppeteer from 'puppeteer';
+import puppeteer from 'puppeteer-core';
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 
 export default class PuppeteerService {
@@ -9,8 +9,12 @@ export default class PuppeteerService {
     return IS_PRODUCTION
       ? // Connect to browserless so we don't run Chrome on the same hardware in production
       await puppeteer.connect({ browserWSEndpoint })
-      : // Run the browser locally while in development
-      await puppeteer.launch({ headless: 'new' });
+      : // puppeteer-core does not bundle Chromium — use system Chrome or PUPPETEER_EXECUTABLE_PATH
+      await puppeteer.launch(
+        process.env.PUPPETEER_EXECUTABLE_PATH
+          ? { headless: 'new', executablePath: process.env.PUPPETEER_EXECUTABLE_PATH }
+          : { headless: 'new', channel: 'chrome' }
+      );
   }
 
   async pdfFromHtmlAsBuffer(html) {
