@@ -807,6 +807,7 @@ export default function EditActivity({
             activity={activity}
             hideTransversal={(noSelectedLevels || noSelectedTransversalCores)}
             hideSpecific={(noSelectedLevels || noSelectedSpecificCores)}
+            hideSubObjectives
             handleSelectChange={handleMultipleSelectChange}
             onCreateSubObjective={handleCreateSubObjective}
             onCreateObjective={handleCreateObjective}
