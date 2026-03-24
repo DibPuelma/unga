@@ -59,6 +59,7 @@ export default forwardRef((
     const newAssets = { ...assets }
     delete newAssets[assetId]
     setAssets(newAssets);
+    onAssetChange?.(newAssets);
   };
 
   return (
