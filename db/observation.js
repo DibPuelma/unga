@@ -1,6 +1,33 @@
 import prisma from './prisma';
 import moment from 'moment-timezone';
 
+/** Observations.assets is TEXT[]; UI sends Cloudinary objects — store each as JSON string. */
+const serializeObservationAssets = (assets) => {
+  if (!Array.isArray(assets)) return [];
+  return assets.map((item) =>
+    typeof item === 'string' ? item : JSON.stringify(item),
+  );
+};
+
+export const parseObservationAssets = (assets) => {
+  if (!Array.isArray(assets)) return [];
+  return assets
+    .map((item) => {
+      if (item == null) return null;
+      if (typeof item === 'object') return item;
+      if (typeof item === 'string') {
+        try {
+          const parsed = JSON.parse(item);
+          return typeof parsed === 'object' && parsed !== null ? parsed : null;
+        } catch {
+          return null;
+        }
+      }
+      return null;
+    })
+    .filter(Boolean);
+};
+
 const BASE_OBSERVATION = {
   students: [],
   description: '',
@@ -30,7 +57,7 @@ export const createObservation = async (data) => {
   const observation = await prisma.observations.create({
         data: {
           description,
-      assets: assets || [],
+      assets: serializeObservationAssets(assets),
       coreId: core || null,
       teacherId: teacher,
       institutionId: institution || null,
@@ -54,6 +81,7 @@ export const createObservation = async (data) => {
   // Transform to lowercase for backward compatibility
   return {
     ...observation,
+    assets: parseObservationAssets(observation.assets),
     students: observation.Students || [],
     teacher: observation.users,
     classroom: observation.Classes,
@@ -75,9 +103,12 @@ export const updateObservation = async (id, data) => {
 
   const updateData = {
     description,
-    assets: assets || [],
     coreId: core || null,
   };
+
+  if (assets !== undefined) {
+    updateData.assets = serializeObservationAssets(assets ?? []);
+  }
 
   if (students) {
     updateData.Students = {
@@ -100,6 +131,7 @@ export const updateObservation = async (id, data) => {
   // Transform to lowercase for backward compatibility
   return {
     ...observation,
+    assets: parseObservationAssets(observation.assets),
     students: observation.Students || [],
   };
 }
@@ -122,6 +154,7 @@ export const getObservation = async (id) => {
   // Transform to lowercase for backward compatibility
   const transformed = {
     ...observation,
+    assets: parseObservationAssets(observation.assets),
     students: observation.Students || [],
     teacher: observation.users,
     classroom: observation.Classes,
@@ -165,6 +198,7 @@ export const getObservationsByStudent = async (studentId) => {
   // Transform to lowercase for backward compatibility
   return observations.map(obs => ({
     ...obs,
+    assets: parseObservationAssets(obs.assets),
     students: obs.Students || [],
     teacher: obs.users,
     classroom: obs.Classes,
@@ -196,6 +230,7 @@ export const getObservationsByClassAndCore = async (classroomId, coreId) => {
   // Transform to lowercase for backward compatibility
   const transformed = observations.map(obs => ({
     ...obs,
+    assets: parseObservationAssets(obs.assets),
     students: obs.Students || [],
     teacher: obs.users,
     classroom: obs.Classes,
@@ -236,6 +271,7 @@ export const getObservationsByClass = async (classroomId) => {
   // Transform to lowercase for backward compatibility
   return observations.map(obs => ({
     ...obs,
+    assets: parseObservationAssets(obs.assets),
     students: obs.Students || [],
     teacher: obs.users,
     classroom: obs.Classes,
@@ -269,6 +305,7 @@ export const getFullObservationsByClass = async ({ classroomId, pageSize = 100 }
   // Transform to lowercase for backward compatibility
   return observations.map(obs => ({
     ...obs,
+    assets: parseObservationAssets(obs.assets),
     students: obs.Students || [],
     teacher: obs.users,
     classroom: obs.Classes,
@@ -300,6 +337,7 @@ export const getObservationsByInstitution = async (institutionId) => {
   // Transform to lowercase for backward compatibility
   return observations.map(obs => ({
     ...obs,
+    assets: parseObservationAssets(obs.assets),
     students: obs.Students || [],
     teacher: obs.users,
     classroom: obs.Classes,
@@ -325,6 +363,7 @@ export const getObservationsByPlannedActivity = async (plannedActivityId) => {
   // Transform to lowercase for backward compatibility
   return observations.map(obs => ({
     ...obs,
+    assets: parseObservationAssets(obs.assets),
     students: obs.Students || [],
     teacher: obs.users,
     classroom: obs.Classes,
