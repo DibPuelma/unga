@@ -58,9 +58,10 @@ export default function AttendanceTable({ students, attendances, selectedDay, cl
     const attendancesArray = Array.isArray(attendances) ? attendances : [];
     ascendingSort([...students], 'lastName').forEach((student) => {
       newStudentsNameById[student.id] = student.fullName;
-      const studentAttendance = attendancesArray.find((attendance) => (
-        attendance.student.id === student.id
-      ))
+      const studentAttendance = attendancesArray.find((attendance) => {
+        const attendStudentId = attendance.student?.id ?? attendance.studentId;
+        return attendStudentId === student.id;
+      })
       if (!studentAttendance) {
         newAttendancesPerStudent[student.id] = { attendanceType: 'present' };
       } else {
@@ -85,11 +86,12 @@ export default function AttendanceTable({ students, attendances, selectedDay, cl
   };
 
   const handleCreateAttendance = async () => {
-    if (attendances.length > 0 && moment(selectedDay).isBefore(moment(), 'day')) return;
+    const existingAttendances = Array.isArray(dynamicAttendances) ? dynamicAttendances : [];
+    if (existingAttendances.length > 0 && moment(selectedDay).isBefore(moment(), 'day')) return;
     setRequestResponse((oldValue) => ({ ...oldValue, loading: true }));
     try {
       let response = {};
-      if (attendances.length > 0) {
+      if (existingAttendances.length > 0) {
         response = await axios.patch(`/api/classrooms/${classroomId}/attendance`, {
           attendancesPerStudent,
         })
@@ -126,7 +128,7 @@ export default function AttendanceTable({ students, attendances, selectedDay, cl
           variant="contained"
           loading={requestResponse.loading}
           onClick={handleCreateAttendance}
-          disabled={(attendances && attendances.length > 0) && moment(selectedDay).isBefore(moment(), 'day')}
+          disabled={Array.isArray(dynamicAttendances) && dynamicAttendances.length > 0 && moment(selectedDay).isBefore(moment(), 'day')}
         >
           Registrar asistencia {moment(selectedDay).format('ddd DD [de] MMM')}
         </LoadingButton>
