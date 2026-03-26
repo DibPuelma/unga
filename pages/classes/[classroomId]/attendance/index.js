@@ -48,7 +48,7 @@ export async function getServerSideProps(context) {
 
   return {
     props: serializeForNextProps({
-      attendances: attendances.data,
+      attendances: Array.isArray(attendances) ? attendances : [],
       classroom,
       students,
       day,
