@@ -11,21 +11,22 @@ export default async (req, res) => {
   }
 
   if (req.method === 'GET') {
-    const query = await getAttendanceByClassroomAndDates(
+    const rows = await getAttendanceByClassroomAndDates(
       classroomId,
       startDate,
       endDate,
     );
+    const attendances = Array.isArray(rows) ? rows : rows?.data ?? [];
 
     if (analyticsByMonth) {
       const attendanceByDateAndMonth = getAttendanceAnalyticsByDateAndMonth(
-        query.data,
+        attendances,
         startDate,
         endDate,
         );
       res.status(200).json(attendanceByDateAndMonth);
     } else {
-      res.status(200).json(query.data);
+      res.status(200).json(attendances);
     }
   }
 
