@@ -10,6 +10,18 @@ import { UserContext } from "src/context/UserContext";
 import UngaRatioImage from "../utils/UngaRatioImage";
 import AttendanceStats from "./AttendanceStats";
 
+function attendanceTypeForStudentDate(attendances, studentId, dateMoment) {
+  const list = Array.isArray(attendances) ? attendances : [];
+  const row = list.find((attendance) => {
+    const attendStudentId = attendance.student?.id ?? attendance.studentId;
+    return (
+      attendStudentId === studentId &&
+      moment(attendance.attendanceDate).format('YYYY-MM-DD') === dateMoment.format('YYYY-MM-DD')
+    );
+  });
+  return row?.attendanceType;
+}
+
 export default function ClassroomAttendanceTable({
   startDate,
   endDate,
@@ -75,10 +87,7 @@ export default function ClassroomAttendanceTable({
                   {student.firstName} {student.lastName}
                 </TableCell>
                 {monthDates.map((date) => {
-                  const attendanceType = attendances.find((attendance) => (
-                    attendance.student.id === student.id &&
-                    attendance.attendanceDate === date.format('YYYY-MM-DD')
-                  ))?.attendanceType;
+                  const attendanceType = attendanceTypeForStudentDate(attendances, student.id, date);
                   return (
                     <TableCell key={date}>
                       {attendanceType ? toAcronym(ATTENDANCE_TYPES_TO_SPANISH[attendanceType]) : 'SR'}
@@ -127,10 +136,7 @@ export default function ClassroomAttendanceTable({
                     </Typography>
                   </TableCell>
                   {monthDates.map((date) => {
-                    const attendanceType = attendances.find((attendance) => (
-                      attendance.student.id === student.id &&
-                      attendance.attendanceDate === date.format('YYYY-MM-DD')
-                    ))?.attendanceType;
+                    const attendanceType = attendanceTypeForStudentDate(attendances, student.id, date);
                     return (
                       <TableCell key={date}>
                         {attendanceType ? toAcronym(ATTENDANCE_TYPES_TO_SPANISH[attendanceType]) : 'SR'}
