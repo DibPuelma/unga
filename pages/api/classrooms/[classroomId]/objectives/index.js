@@ -7,7 +7,7 @@ import { classroomAuthorization } from 'pages/api/auth/authorizations';
 
 export default async (req, res) => {
   const { user, user: { institution } } = await getServerSession(req, res, authOptions);
-  const { query: { classroomId, ids, coresNames, endDate } } = req;
+  const { query: { classroomId, ids, coresNames, endDate, startDate } } = req;
 
   const authorized = await classroomAuthorization(user, classroomId);
   if (!authorized) {
@@ -20,11 +20,13 @@ export default async (req, res) => {
   }
 
   if (req.method == 'GET') {
+    res.setHeader('Cache-Control', 'private, no-store');
     let query = null;
     if (ids) query = await getObjectivesWithAdvancementByIds({
       ids: ids.split(','),
       classroomId,
       institutionId: institution.id,
+      ...(startDate && { startDate }),
       endDate,
     });
     else if (coresNames) {
