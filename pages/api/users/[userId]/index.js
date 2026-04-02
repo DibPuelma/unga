@@ -14,6 +14,14 @@ export default async (req, res) => {
 
     if (!user) return res.status(401).end();
 
+    if (body.password != null && body.password !== '') {
+      if (typeof body.password !== 'string' || body.password.length < 6) {
+        return res.status(400).json({
+          message: 'La contraseña debe tener al menos 6 caracteres',
+        });
+      }
+    }
+
     const isSuperAdmin = user.role === 'superAdmin' || user.role === 'super-admin';
     if (user.id === userId || isSuperAdmin) {
       if (body.role) {

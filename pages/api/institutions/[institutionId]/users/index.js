@@ -18,6 +18,13 @@ export default async (req, res) => {
     const { institution } = user;
     if (institution.id !== institutionId) return res.status(403).end();
 
+    const { password } = req.body;
+    if (!password || typeof password !== 'string' || password.length < 6) {
+      return res.status(400).json({
+        message: 'La contraseña es obligatoria y debe tener al menos 6 caracteres',
+      });
+    }
+
     const query = await createUser({ ...req.body, institution: institutionId });
     res.status(200).json(query);
   }
