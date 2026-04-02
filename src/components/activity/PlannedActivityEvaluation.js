@@ -48,7 +48,16 @@ export default function PlannedActivityEvaluation({ plannedActivity, onClose, on
       formActivity.specificObjectives.length > 0 || formActivity.transversalObjectives.length > 0),
     [formActivity]
   )
-  const endDate = useMemo(() => moment(plannedDate).endOf('day').toISOString(), [plannedDate]);
+  // Use UTC day bounds: local endOf('day') can fall on the previous calendar day for ISO
+  // midnight UTC (e.g. America/Santiago), excluding evaluations whose createdAt is later
+  // that same UTC day (see db/objective.js Evaluations filter).
+  const { startDate, endDate } = useMemo(() => {
+    const d = moment.utc(plannedDate);
+    return {
+      startDate: d.clone().startOf('day').toISOString(),
+      endDate: d.clone().endOf('day').toISOString(),
+    };
+  }, [plannedDate]);
 
   const fetchCores = async () => {
     const coresResponse = await axios.get(`/api/institutions/${institutionId}/cores`);
@@ -69,9 +78,9 @@ export default function PlannedActivityEvaluation({ plannedActivity, onClose, on
       setDataReady((oldValue) => ({ ...oldValue, objectives: true }));
       return;
     }
-    const objectivesResponse = await axios.get(
-      `/api/classrooms/${classroomId}/objectives?ids=${objectivesIds}&endDate=${endDate}`
-    );
+    const objectivesResponse = await axios.get(`/api/classrooms/${classroomId}/objectives`, {
+      params: { ids: objectivesIds, startDate, endDate },
+    });
     if (!classroom?.level?.id) {
       setDataReady((oldValue) => ({ ...oldValue, objectives: true }));
       return;
@@ -93,9 +102,9 @@ export default function PlannedActivityEvaluation({ plannedActivity, onClose, on
       setDataReady((oldValue) => ({ ...oldValue, subObjectives: true }));
       return;
     }
-    const subObjectivesResponse = await axios.get(
-      `/api/classrooms/${classroomId}/sub-objectives?ids=${subObjectivesIds}&endDate=${endDate}`
-    );
+    const subObjectivesResponse = await axios.get(`/api/classrooms/${classroomId}/sub-objectives`, {
+      params: { ids: subObjectivesIds, startDate, endDate },
+    });
     if (!classroom?.level?.id) {
       setDataReady((oldValue) => ({ ...oldValue, subObjectives: true }));
       return;
