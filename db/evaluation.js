@@ -13,24 +13,33 @@ export const createEvaluation = async (data) => {
     date,
   } = data;
 
-  const now = moment();
-  let createdAt = new Date();
+  // When a calendar date is sent (e.g. planned activity / report period), anchor to that UTC day
+  // so createdAt stays inside the same [startDate, endDate] window used when loading objectives
+  // (see getObjectivesWithAdvancementByIds). The old isBefore(now, 'day') branch used "now" for
+  // same-day evaluations, which could land on the next UTC day and be excluded from the fetch.
+  let createdAt;
+  let createdAtDayRange;
   if (date) {
-    const dateMoment = moment(date);
-    if (dateMoment.isBefore(now, 'day')) {
-      createdAt = dateMoment.toDate();
-  }
+    const utcStart = moment.utc(date).startOf('day');
+    const utcEnd = moment.utc(date).endOf('day');
+    createdAt = utcStart.toDate();
+    createdAtDayRange = {
+      gte: utcStart.toDate(),
+      lte: utcEnd.toDate(),
+    };
+  } else {
+    createdAt = new Date();
+    createdAtDayRange = {
+      gte: moment(createdAt).startOf('day').toDate(),
+      lte: moment(createdAt).endOf('day').toDate(),
+    };
   }
 
-  // Check if evaluation already exists for this objective, student, and date
   const existing = await prisma.evaluations.findFirst({
     where: {
       objectiveId,
       studentId,
-      createdAt: {
-        gte: moment(createdAt).startOf('day').toDate(),
-        lte: moment(createdAt).endOf('day').toDate(),
-      },
+      createdAt: createdAtDayRange,
     },
   });
 
