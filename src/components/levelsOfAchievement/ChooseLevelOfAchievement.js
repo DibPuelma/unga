@@ -140,7 +140,7 @@ export default function ChooseLevelOfAchievement({
         });
       }
       if (plannedActivityToEvaluate) {
-        sendPlannedActivityEvaluation(baseBody, baseTrackingData)
+        await sendPlannedActivityEvaluation(baseBody, baseTrackingData)
       }
     } catch (error) {
       console.error(error);
