@@ -1,5 +1,6 @@
 import prisma from './prisma';
 import moment from 'moment-timezone';
+import { updateObjective } from './objective';
 
 export const createEvaluation = async (data) => {
   const {
@@ -98,9 +99,11 @@ export const createEvaluation = async (data) => {
     throw new Error(`Objective is deleted: ${objectiveId}`);
   }
   
-  // Verify objective is associated with the classroom
   if (!objective.Classes || objective.Classes.length === 0) {
-    throw new Error(`Objective ${objectiveId} is not associated with classroom ${classroomId}`);
+    if (classroom.institutionId !== institutionId) {
+      throw new Error(`Classroom ${classroomId} does not belong to institution ${institutionId}`);
+    }
+    await updateObjective(objectiveId, { newClassroom: classroomId });
   }
 
   const evaluation = await prisma.evaluations.create({
