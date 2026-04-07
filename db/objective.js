@@ -503,3 +503,46 @@ export const countAllObjectivesForInstitution = async (institutionId) => {
 
   return count;
 }
+
+export const ensureObjectivesLinkedToClassroom = async (objectiveIds, classroomId) => {
+  if (!objectiveIds?.length || !classroomId) return;
+
+  const classroom = await prisma.classes.findUnique({
+    where: { id: classroomId },
+    include: { Levels: true },
+  });
+  if (!classroom) return;
+
+  const unlinkedObjectives = await prisma.objectives.findMany({
+    where: {
+      id: { in: objectiveIds },
+      deletedAt: null,
+      NOT: { Classes: { some: { id: classroomId } } },
+    },
+    include: {
+      Classes: { include: { Levels: true } },
+    },
+  });
+
+  await Promise.all(
+    unlinkedObjectives.map(async (objective) => {
+      const allClassrooms = [...objective.Classes, classroom];
+      const allLevelIds = [...new Set(allClassrooms.map((c) => c.levelId))];
+
+      await prisma.objectives.update({
+        where: { id: objective.id },
+        data: {
+          Classes: {
+            set: allClassrooms.map((c) => ({ id: c.id })),
+          },
+          ObjectiveLevels: {
+            deleteMany: {},
+            create: allLevelIds.map((id) => ({
+              Levels: { connect: { id } },
+            })),
+          },
+        },
+      });
+    })
+  );
+}
