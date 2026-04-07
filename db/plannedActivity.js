@@ -1,5 +1,6 @@
 import prisma from './prisma';
 import { fullActivityQuery } from './activity';
+import { ensureObjectivesLinkedToClassroom } from './objective';
 import moment from 'moment-timezone';
 
 export const planActivity = async (data) => {
@@ -27,7 +28,9 @@ export const planActivity = async (data) => {
       plannedDate: plannedDateObj,
     },
     include: {
-      Activities: true,
+      Activities: {
+        include: { Objectives: { select: { id: true } } },
+      },
       Classes: {
         include: {
           Levels: true,
@@ -35,6 +38,9 @@ export const planActivity = async (data) => {
       },
     },
   });
+
+  const objectiveIds = plannedActivity.Activities?.Objectives?.map((o) => o.id) || [];
+  await ensureObjectivesLinkedToClassroom(objectiveIds, classroom);
 
   return JSON.parse(JSON.stringify({
     ...plannedActivity,
@@ -71,6 +77,15 @@ export const updatePlannedActivity = async (id, data) => {
       Activities: true,
     },
   });
+
+  if (activityId) {
+    const activityWithObjectives = await prisma.activities.findUnique({
+      where: { id: activityId },
+      select: { Objectives: { select: { id: true } } },
+    });
+    const objectiveIds = activityWithObjectives?.Objectives?.map((o) => o.id) || [];
+    await ensureObjectivesLinkedToClassroom(objectiveIds, plannedActivity.classroomId);
+  }
 
   const activityData = await fullActivityQuery(plannedActivity.activityId);
 
