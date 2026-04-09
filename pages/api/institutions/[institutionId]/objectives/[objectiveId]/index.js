@@ -7,6 +7,9 @@ export default async (req, res) => {
   const { user: { institution, classrooms, role } } = await getServerSession(req, res, authOptions);
   const { query: { institutionId, objectiveId } } = req;
   const objective = await getObjective(objectiveId);
+  if (!objective) {
+    return res.status(404).end();
+  }
   const objectiveClassrooms = objective.classrooms.map((classroom) => classroom.id);
   if (institution.id !== institutionId) {
     return res.status(403).end();

@@ -115,6 +115,20 @@ export const createObjectiveForClassroomsMassively = async ({ objectives, user }
   }));
 }
 
+export const getObjective = async (objectiveId) => {
+  const objective = await prisma.objectives.findUnique({
+    where: { id: objectiveId },
+    include: {
+      Classes: true,
+    },
+  });
+  if (!objective) return null;
+  return JSON.parse(JSON.stringify({
+    ...objective,
+    classrooms: objective.Classes || [],
+  }));
+};
+
 export const softDeleteObjective = async (objectiveId) => {
   const objective = await prisma.objectives.update({
     where: { id: objectiveId },
