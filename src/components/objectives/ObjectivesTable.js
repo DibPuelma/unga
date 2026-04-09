@@ -1,7 +1,7 @@
 import { Add, CancelOutlined, DeleteOutlined, EditOutlined, SaveOutlined, SearchOutlined, Upload } from "@mui/icons-material";
-import { Box, Button, Checkbox, CircularProgress, IconButton, InputAdornment, MenuItem, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, TableSortLabel, TextField, Typography } from "@mui/material";
+import { Box, Button, Checkbox, CircularProgress, FormControl, IconButton, InputAdornment, InputLabel, MenuItem, Select, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, TableSortLabel, TextField, Typography } from "@mui/material";
 import axios from "axios";
-import { useContext, useEffect, useMemo, useState } from "react";
+import { useContext, useMemo, useState } from "react";
 import UngaFullScreenDialog from "../utils/UngaFullScreenDialog";
 import UngaSelectObjectives from "../utils/UngaSelectObjectives";
 import UploadCreateObjectives from "./UploadCreateObjectives";
@@ -12,6 +12,8 @@ import ClickableTooltip from "../utils/ClickableTooltip";
 import { idMapper } from "src/helpers/parsers";
 import { UserContext } from "src/context/UserContext";
 
+/** MUI Select value for “no classroom assigned”; must not collide with real classroom ids. */
+const CLASSROOM_FILTER_UNASSIGNED = '__unassigned__';
 
 function descendingComparator(a, b, orderBy) {
   return b[orderBy].toString().localeCompare?.(a[orderBy]);
@@ -68,6 +70,8 @@ export default function ObjectivesTable({
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(20);
   const [search, setSearch] = useState('');
+  const [filterCoreId, setFilterCoreId] = useState('');
+  const [filterClassroomId, setFilterClassroomId] = useState('');
   const [showNewForm, setShowNewForm] = useState(false);
   const [massCreateDialogOpen, setMassCreateDialogOpen] = useState(false);
   const [dynamicObjectives, setDynamicObjectives] = useState([...objectives]);
@@ -81,21 +85,25 @@ export default function ObjectivesTable({
   );
   const allowedClassroomsIds = useMemo(() => allowedClassrooms.map((classroom) => classroom.id), [allowedClassrooms]);
 
-  const [orderedRows, setOrderedRows] = useState(
-    stableSort(rows, getComparator(order, orderBy))
-  );
+  const filteredRows = useMemo(() => rows.filter((row) => {
+    if (search && !row.name.toLowerCase().includes(search.toLowerCase())) return false;
+    if (filterCoreId && String(row.coreId) !== String(filterCoreId)) return false;
+    if (filterClassroomId === CLASSROOM_FILTER_UNASSIGNED) {
+      if (row.classrooms.length > 0) return false;
+    } else if (filterClassroomId && !row.classrooms.map(String).includes(String(filterClassroomId))) {
+      return false;
+    }
+    return true;
+  }), [rows, search, filterCoreId, filterClassroomId]);
 
-  useEffect(() => {
-    setOrderedRows(
-      stableSort(orderedRows, getComparator(order, orderBy))
-    );
-  }, [order, orderBy, page, rowsPerPage])
+  const orderedRows = useMemo(
+    () => stableSort(filteredRows, getComparator(order, orderBy)),
+    [filteredRows, order, orderBy],
+  );
 
   const handleSearch = ({ target: { value } }) => {
     setSearch(value);
-    setOrderedRows(
-      rows.filter((row) => row.name.toLowerCase().includes(value.toLowerCase()))
-    );
+    setPage(0);
   }
 
   const handleSort = (property) => (event) => {
@@ -119,18 +127,11 @@ export default function ObjectivesTable({
 
   const handleCreateObjective = (objective) => {
     setDynamicObjectives((prev) => [...prev, objective]);
-    const newRow = objectiveToRow(objective);
-    setOrderedRows((prev) => [newRow, ...prev]);
     setShowNewForm(false)
   }
 
   const handleCreateObjectives = (objectives) => {
     setDynamicObjectives((prev) => [...prev, ...objectives]);
-    const newRows = [];
-    objectives.forEach((objective) => {
-      newRows.push(objectiveToRow(objective))
-    });
-    setOrderedRows((prev) => [...newRows, ...prev]);
     setMassCreateDialogOpen(false);
   }
 
@@ -140,12 +141,6 @@ export default function ObjectivesTable({
       const newObjectives = [...prev];
       newObjectives[index] = newObjective;
       return newObjectives;
-    })
-    setOrderedRows((prev) => {
-      const index = prev.findIndex((row) => row.id === newObjective.id);
-      const newRows = [...prev];
-      newRows[index] = objectiveToRow(newObjective);
-      return newRows;
     })
   }
 
@@ -225,7 +220,6 @@ export default function ObjectivesTable({
   };
 
   const handleDelete = (objectiveId) => {
-    setOrderedRows((prev) => prev.filter((row) => row.id !== objectiveId));
     setDynamicObjectives((prev) => prev.filter((objective) => objective.id !== objectiveId));
   }
 
@@ -265,22 +259,72 @@ export default function ObjectivesTable({
   return (
     <Stack>
       <Stack direction={{ xs: 'column-reverse', sm: 'row' }} alignItems="flex-start" justifyContent="space-between" spacing={2}>
-        <TextField
-          fullWidth
-          size="small"
-          placeholder="Buscar por nombre"
-          variant="standard"
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchOutlined />
-              </InputAdornment>
-            ),
-          }}
-          value={search}
-          onChange={handleSearch}
-          sx={{ display: showNewForm ? 'none' : 'inherit' }}
-        />
+        <Stack
+          direction={{ xs: 'column', sm: 'row' }}
+          spacing={2}
+          useFlexGap
+          sx={{ flex: 1, width: '100%' }}
+        >
+          <TextField
+            fullWidth
+            size="small"
+            placeholder="Buscar por nombre"
+            variant="standard"
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchOutlined />
+                </InputAdornment>
+              ),
+            }}
+            value={search}
+            onChange={handleSearch}
+            sx={{ display: showNewForm ? 'none' : 'inherit' }}
+          />
+          <FormControl
+            size="small"
+            variant="standard"
+            sx={{ minWidth: 160, display: showNewForm ? 'none' : 'inherit' }}
+          >
+            <InputLabel id="objectives-filter-core-label">Núcleo</InputLabel>
+            <Select
+              labelId="objectives-filter-core-label"
+              value={filterCoreId}
+              label="Núcleo"
+              onChange={(e) => {
+                setFilterCoreId(e.target.value);
+                setPage(0);
+              }}
+            >
+              <MenuItem value="">Todos</MenuItem>
+              {allCores.map((core) => (
+                <MenuItem key={core.id} value={core.id}>{core.name}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <FormControl
+            size="small"
+            variant="standard"
+            sx={{ minWidth: 160, display: showNewForm ? 'none' : 'inherit' }}
+          >
+            <InputLabel id="objectives-filter-classroom-label">Sala</InputLabel>
+            <Select
+              labelId="objectives-filter-classroom-label"
+              value={filterClassroomId}
+              label="Sala"
+              onChange={(e) => {
+                setFilterClassroomId(e.target.value);
+                setPage(0);
+              }}
+            >
+              <MenuItem value="">Todas</MenuItem>
+              <MenuItem value={CLASSROOM_FILTER_UNASSIGNED}>Sin sala asignada</MenuItem>
+              {allowedClassrooms.map((classroom) => (
+                <MenuItem key={classroom.id} value={classroom.id}>{classroom.name}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Stack>
         <Stack width="100%" direction={{ xs: 'column-reverse', sm: 'row' }} alignItems="flex-start" spacing={1}>
           <Button
             sx={{ display: showNewForm ? 'none' : 'inherit' }}
