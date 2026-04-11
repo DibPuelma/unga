@@ -11,6 +11,7 @@ import ObjectivesConfiguration from "./tabs/Objectives";
 import StudentsConfiguration from "./tabs/Students";
 import { useRouter } from "next/router";
 import SubObjectivesConfiguration from "./tabs/SubObjectives";
+import ObjectivesTreeConfiguration from "./tabs/ObjectivesTree";
 
 export default function ConfigureInstitutionContainer() {
   const router = useRouter();
@@ -82,6 +83,13 @@ export default function ConfigureInstitutionContainer() {
             <Tab label="Indicadores de informe" />
             <Tab label="Indicadores de evaluación" />
             <Tab
+              label="Árbol de objetivos"
+              disabled={!canConfigureEmployees}
+              sx={{
+                display: canConfigureEmployees ? 'inherit' : 'none'
+              }}
+            />
+            <Tab
               label="Párvulos"
               disabled={!canConfigureStudents}
               sx={{
@@ -116,6 +124,9 @@ export default function ConfigureInstitutionContainer() {
             <SubObjectivesConfiguration />
           )}
           {tabValue === 5 && (
+            <ObjectivesTreeConfiguration />
+          )}
+          {tabValue === 6 && (
             <StudentsConfiguration />
           )}
         </Box>
