@@ -136,6 +136,24 @@ export const getCurricularObjectivesForCores = async (coreIds, levelIds = null) 
   }));
 }
 
+export const deleteCurricularObjective = async (curricularObjectiveId) => {
+  await prisma.objectives.updateMany({
+    where: { curricularObjectiveId },
+    data: { curricularObjectiveId: null },
+  });
+
+  await prisma.subObjectives.updateMany({
+    where: { curricularObjectiveId },
+    data: { curricularObjectiveId: null },
+  });
+
+  const deleted = await prisma.curricularObjectives.delete({
+    where: { id: curricularObjectiveId },
+  });
+
+  return deleted;
+}
+
 export const getCurricularObjectivesByCore = async (coreId) => {
   const objectives = await prisma.curricularObjectives.findMany({
     where: { coreId },
