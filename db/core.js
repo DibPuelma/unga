@@ -502,3 +502,85 @@ export const getCoresWithAdvancementForStudentAndDates = async ({ institutionId,
     endDate,
   });
 }
+
+export const getObjectivesTree = async (institutionId) => {
+  const cores = await prisma.cores.findMany({
+    where: { institutionId },
+    include: {
+      CurricularObjectives: {
+        include: {
+          Levels: true,
+        },
+        orderBy: { name: 'asc' },
+      },
+      Objectives: {
+        where: { deletedAt: null },
+        include: {
+          SubObjectives: {
+            where: { deletedAt: null },
+            orderBy: { position: 'asc' },
+          },
+          CurricularObjectives: true,
+          Classes: true,
+          ObjectiveLevels: {
+            include: { Levels: true },
+          },
+        },
+        orderBy: { position: 'asc' },
+      },
+    },
+    orderBy: { position: 'asc' },
+  });
+
+  return cores.map((core) => {
+    const objectivesByOA = {};
+    const unlinkedObjectives = [];
+
+    for (const obj of core.Objectives) {
+      const mapped = {
+        id: obj.id,
+        name: obj.name,
+        position: obj.position,
+        coreId: obj.coreId,
+        curricularObjectiveId: obj.curricularObjectiveId,
+        classrooms: obj.Classes,
+        levels: obj.ObjectiveLevels?.map((ol) => ol.Levels) || [],
+        subObjectives: obj.SubObjectives.map((so) => ({
+          id: so.id,
+          name: so.name,
+          position: so.position,
+          objectiveId: so.objectiveId,
+          coreId: so.coreId,
+          curricularObjectiveId: so.curricularObjectiveId,
+        })),
+      };
+
+      if (obj.curricularObjectiveId) {
+        if (!objectivesByOA[obj.curricularObjectiveId]) {
+          objectivesByOA[obj.curricularObjectiveId] = [];
+        }
+        objectivesByOA[obj.curricularObjectiveId].push(mapped);
+      } else {
+        unlinkedObjectives.push(mapped);
+      }
+    }
+
+    const curricularObjectives = core.CurricularObjectives.map((co) => ({
+      id: co.id,
+      name: co.name,
+      coreId: co.coreId,
+      levels: co.Levels || [],
+      objectives: objectivesByOA[co.id] || [],
+    }));
+
+    return {
+      id: core.id,
+      name: core.name,
+      description: core.description,
+      position: core.position,
+      type: core.type,
+      curricularObjectives,
+      unlinkedObjectives,
+    };
+  });
+}
