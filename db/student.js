@@ -9,6 +9,36 @@ const parseBirthDate = (birthDate) => {
   return new Date(birthDate);
 };
 
+// profilePicture is a TEXT column but the UI sends a Cloudinary asset object.
+// Store it as a JSON string and parse it back on read.
+const normalizeProfilePictureForWrite = (profilePicture) => {
+  if (profilePicture === undefined) return undefined;
+  if (profilePicture === null) return null;
+  if (typeof profilePicture === 'string') return profilePicture;
+  if (typeof profilePicture === 'object') return JSON.stringify(profilePicture);
+  return null;
+};
+
+const normalizeProfilePictureForRead = (profilePicture) => {
+  if (!profilePicture) return profilePicture;
+  if (typeof profilePicture === 'object') return profilePicture;
+  if (typeof profilePicture !== 'string') return null;
+
+  try {
+    return JSON.parse(profilePicture);
+  } catch (_) {
+    return profilePicture;
+  }
+};
+
+const withParsedProfilePicture = (student) => {
+  if (!student) return student;
+  return {
+    ...student,
+    profilePicture: normalizeProfilePictureForRead(student.profilePicture),
+  };
+};
+
 export const createStudent = async (data) => {
   const {
     firstName,
@@ -33,10 +63,10 @@ export const createStudent = async (data) => {
     },
   });
 
-  return JSON.parse(JSON.stringify({
+  return JSON.parse(JSON.stringify(withParsedProfilePicture({
     ...student,
     classroom: student.Classes,
-  }));
+  })));
 }
 
 export const updateStudent = async (id, data) => {
@@ -47,7 +77,9 @@ export const updateStudent = async (id, data) => {
   if (data.rut !== undefined) updateData.rut = data.rut || null;
   if (data.birthDate) updateData.birthDate = parseBirthDate(data.birthDate);
   if (data.classroom) updateData.classId = data.classroom;
-  if (data.profilePicture) updateData.profilePicture = data.profilePicture;
+  if (data.profilePicture !== undefined) {
+    updateData.profilePicture = normalizeProfilePictureForWrite(data.profilePicture);
+  }
 
   const student = await prisma.students.update({
     where: { id },
@@ -57,10 +89,10 @@ export const updateStudent = async (id, data) => {
     },
   });
 
-  return JSON.parse(JSON.stringify({
+  return JSON.parse(JSON.stringify(withParsedProfilePicture({
     ...student,
     classroom: student.Classes,
-  }));
+  })));
 }
 
 export const softDeleteStudent = async (id) => {
@@ -116,11 +148,11 @@ export const getStudent = async (studentId) => {
 
   if (!student) return null;
 
-  return JSON.parse(JSON.stringify({
+  return JSON.parse(JSON.stringify(withParsedProfilePicture({
     ...student,
     fullName: `${student.firstName} ${student.lastName}`,
     class: student.Classes,
-  }));
+  })));
 };
 
 export const getAllStudentsForClassroom = async (classroomId) => {
@@ -131,7 +163,7 @@ export const getAllStudentsForClassroom = async (classroomId) => {
     },
   });
 
-  return students.map((s) => ({
+  return students.map((s) => withParsedProfilePicture({
     ...s,
     fullName: `${s.firstName} ${s.lastName}`,
   }));
@@ -146,7 +178,7 @@ export const getStudentsForClassroom = async (classroomId) => {
     },
   });
 
-  return students.map((s) => ({
+  return students.map((s) => withParsedProfilePicture({
     ...s,
     fullName: `${s.firstName} ${s.lastName}`,
   }));
@@ -164,7 +196,7 @@ export const getAllStudentsForInstitution = async (institutionId) => {
     take: 1000,
   });
 
-  return students.map((s) => ({
+  return students.map((s) => withParsedProfilePicture({
     ...s,
     classroom: s.Classes,
   }));

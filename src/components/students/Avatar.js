@@ -1,6 +1,6 @@
-import { Box, CircularProgress, IconButton, Avatar as MaterialAvatar } from "@mui/material"
+import { Alert, Box, CircularProgress, IconButton, Snackbar, Avatar as MaterialAvatar } from "@mui/material"
 import Avatar from "../user/Avatar"
-import { AddAPhotoOutlined, DeleteOutlined } from "@mui/icons-material";
+import { AddAPhotoOutlined } from "@mui/icons-material";
 import { useState } from "react";
 import CloudinaryUploadWidget from "../utils/CloudinaryUploadWidget";
 import axios from "axios";
@@ -9,12 +9,14 @@ export default function StudentAvatar({ student }) {
   const [hovering, setHovering] = useState(false);
   const [dynamicStudent, setDynamicStudent] = useState(student);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleAssetChange = async (assetObject) => {
     // Assets are an object.
     // This is a single input, therefore position 0 will always be the only asset uploaded
     const asset = Object.values(assetObject)[0];
     try {
+      setError('');
       setLoading(true);
       const newStudentResponse = await axios.patch(`/api/classrooms/${student.classroomId || student.classId}/students/${student.id}`, {
         profilePicture: asset,
@@ -22,6 +24,7 @@ export default function StudentAvatar({ student }) {
       setDynamicStudent(newStudentResponse.data)
     } catch (e) {
       console.error(e);
+      setError('No pudimos actualizar la foto. Intenta nuevamente.');
     } finally {
       setLoading(false);
     }
@@ -60,6 +63,16 @@ export default function StudentAvatar({ student }) {
         </>
       )
       }
+      <Snackbar
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        open={Boolean(error)}
+        onClose={() => setError('')}
+        autoHideDuration={5000}
+      >
+        <Alert onClose={() => setError('')} severity="error" sx={{ width: '100%' }}>
+          {error}
+        </Alert>
+      </Snackbar>
     </Box >
   )
 }

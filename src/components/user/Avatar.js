@@ -20,12 +20,15 @@ export default function Avatar({ user, sx, size = 40, imageUrl }) {
       />
     )
   }
-  if (user.profilePicture) {
+  const profilePictureUrl = typeof user.profilePicture === 'string'
+    ? user.profilePicture
+    : user.profilePicture?.secure_url || user.profilePicture?.url;
+  if (profilePictureUrl) {
     return (
       <MaterialAvatar
         sx={{ width: size, height: size, ...sx }}
         alt={`${user.firstName} ${user.lastName}`}
-        src={user.profilePicture.url}
+        src={profilePictureUrl}
       />
     )
   }
