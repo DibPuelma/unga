@@ -35,12 +35,12 @@ export async function getServerSideProps(context) {
       institution: { id: institutionId },
     }
   } = session;
-  const { params: { classroomId }, query: { startDate, endDate } } = context;
+  const { params: { classroomId }, query: { endDate } } = context;
 
   let cores = null;
   const institution = await getInstitution(institutionId);
   const classroom = await getClassroom(classroomId);
-  const startDateValue = startDate ? moment(startDate).format('YYYY-MM-DD') : moment().startOf('year').format('YYYY-MM-DD');
+  const startDateValue = moment().startOf('year').format('YYYY-MM-DD');
   const endDateValue = endDate ? moment(endDate).format('YYYY-MM-DD') : moment().add(1, 'day').format('YYYY-MM-DD');
   if (!institution.qualitativeOnly) {
     cores = await getCoresWithLevelsOfAchievementByObjectiveAndSubObjective(institutionId, classroomId, startDateValue, endDateValue);
@@ -65,8 +65,8 @@ export default function Cores({ cores, classroom, institutionId, startDate: prop
   const router = useRouter();
   const [dynamicCores, setDynamicCores] = useState([]);
   const [tabValue, setTabValue] = useState(0);
-  const [startDate, setStartDate] = useState(moment(propsStartDate));
   const [endDate, setEndDate] = useState(moment(propsEndDate));
+  const startDate = moment(propsStartDate);
 
   useEffect(() => {
     setDynamicCores(cores)
@@ -74,7 +74,7 @@ export default function Cores({ cores, classroom, institutionId, startDate: prop
 
 
   const handleFilterDates = () => {
-    router.push(`/classes/${classroom.id}/cores?startDate=${startDate.format('YYYY-MM-DD')}&endDate=${endDate.format('YYYY-MM-DD')}`)
+    router.push(`/classes/${classroom.id}/cores?endDate=${endDate.format('YYYY-MM-DD')}`)
   }
 
   return (
@@ -83,20 +83,6 @@ export default function Cores({ cores, classroom, institutionId, startDate: prop
         <title>Avance {classroom.name}</title>
       </Head>
       <Stack direction="row" mt={2} mb={4} gap={2}>
-        <DesktopDatePicker
-          label="Fecha de inicio"
-          inputFormat="DD-MM-yyyy"
-          value={startDate}
-          onChange={setStartDate}
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              error={false}
-              size="small"
-              sx={{ width: { xs: '100%', sm: 250 } }}
-            />
-          )}
-        />
         <DesktopDatePicker
           label="Fecha de término"
           inputFormat="DD-MM-yyyy"
