@@ -60,27 +60,30 @@ export default function GenerateReportButton({ fullWidth, classroomId, studentId
       return;
     }
     setReportLoading(true);
-    await axios.patch(`/api/classrooms/${classroomId}/report-configuration/${classroomReportConfiguration.id}`, {
-      timePeriods: {
-        ...Object.entries(timePeriods).reduce(
-          (acc, [timePeriod, data]) => ({
-            ...acc,
-            [timePeriod]: {
-              ...data,
-              date: data.date.format('YYYY-MM-DD')
-            },
-          }),
-          {}
-        ),
-      },
-      hideDate,
-      showAttendance,
-      showTeam,
-      team,
-      allowEvaluations,
-    });
-    // trackGenerateReport();
-    router.push(`/classes/${classroomId}/students/${studentId}/report`);
+    try {
+      await axios.patch(`/api/classrooms/${classroomId}/report-configuration/${classroomReportConfiguration.id}`, {
+        timePeriods: {
+          ...Object.entries(timePeriods).reduce(
+            (acc, [timePeriod, data]) => ({
+              ...acc,
+              [timePeriod]: {
+                ...data,
+                date: data.date.format('YYYY-MM-DD')
+              },
+            }),
+            {}
+          ),
+        },
+        hideDate,
+        showAttendance,
+        showTeam,
+        team,
+        allowEvaluations,
+      });
+      router.push(`/classes/${classroomId}/students/${studentId}/report`);
+    } catch (error) {
+      setReportLoading(false);
+    }
   }
 
   return (

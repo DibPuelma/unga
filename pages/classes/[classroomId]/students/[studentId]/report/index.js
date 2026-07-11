@@ -80,7 +80,7 @@ export async function getServerSideProps(context) {
   );
 
   const attendanceByDateAndMonth = getAttendanceAnalyticsByDateAndMonth(
-    attendance.data,
+    attendance || [],
     attendanceStartDate,
     attendanceEndDate,
   );
@@ -373,7 +373,7 @@ export default function Report({
             currentUser={currentUser}
             principal={principal}
             coordinator={coordinator}
-            level={classroom?.data?.level?.data?.name}
+            level={classroom?.level?.name}
             attendanceByDate={attendanceByDate}
             onFinishRender={handleReportDownload}
             classroomReportConfiguration={classroomReportConfiguration}

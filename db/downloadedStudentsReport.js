@@ -1,15 +1,15 @@
 import prisma from './prisma';
 
 export const createDownloadedStudentsReport = async (data) => {
-  const report = await prisma.downloadedStudentsReport.create({
+  const report = await prisma.downloadedStudentsReports.create({
     data: {
       institutionId: data.institutionId,
       downloadedById: data.downloadedById || null,
       reportData: data.reportData || {},
     },
     include: {
-      institution: true,
-      downloadedBy: true,
+      Institutions: true,
+      users: true,
     },
   });
 
@@ -17,11 +17,11 @@ export const createDownloadedStudentsReport = async (data) => {
 }
 
 export const getDownloadedStudentsReports = async (institutionId) => {
-  const reports = await prisma.downloadedStudentsReport.findMany({
+  const reports = await prisma.downloadedStudentsReports.findMany({
     where: { institutionId },
     include: {
-      institution: true,
-      downloadedBy: true,
+      Institutions: true,
+      users: true,
     },
     orderBy: { createdAt: 'desc' },
   });
