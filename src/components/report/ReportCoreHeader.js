@@ -3,7 +3,7 @@ import { Stack, Typography } from "@mui/material";
 import { AdvancedReportContext } from "src/context/AdvancedReportContext";
 
 export default function ReportCoreHeader({ core, timePeriods }) {
-  const { data: { name, advancement } } = core;
+  const { name, advancement } = core;
   const { printing } = useContext(AdvancedReportContext);
   return (
     <Stack>

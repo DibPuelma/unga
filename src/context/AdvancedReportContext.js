@@ -21,9 +21,7 @@ export function AdvancedReportContextProvider({ children }) {
 
   useEffect(() => {
     if (reportOptions?.hiddenObjectives) {
-      setHiddenObjectives(
-        reportOptions.hiddenObjectives.map((objective) => objective.id)
-      )
+      setHiddenObjectives(reportOptions.hiddenObjectives || [])
     }
     setLoading(false);
   }, [reportOptions])
