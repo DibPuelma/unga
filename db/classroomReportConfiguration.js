@@ -1,4 +1,34 @@
 import prisma from './prisma';
+import moment from 'moment-timezone';
+
+const getDefaultConfiguration = () => ({
+  timePeriods: {
+    diagnosis: { name: 'Diagnóstico', show: false, date: moment().format('YYYY-MM-DD') },
+    firstSemester: { name: '1er Semestre', show: false, date: moment().format('YYYY-MM-DD') },
+    secondSemester: { name: '2do Semestre', show: false, date: moment().format('YYYY-MM-DD') },
+  },
+  hideDate: false,
+  showAttendance: false,
+  showTeam: false,
+  team: '',
+  allowEvaluations: false,
+});
+
+const flattenConfig = (config) => {
+  const defaults = getDefaultConfiguration();
+  const stored = config.configuration || {};
+  return {
+    id: config.id,
+    classroomId: config.classroomId,
+    institutionId: config.institutionId,
+    timePeriods: stored.timePeriods ?? defaults.timePeriods,
+    hideDate: stored.hideDate ?? defaults.hideDate,
+    showAttendance: stored.showAttendance ?? defaults.showAttendance,
+    showTeam: stored.showTeam ?? defaults.showTeam,
+    team: stored.team ?? defaults.team,
+    allowEvaluations: stored.allowEvaluations ?? defaults.allowEvaluations,
+  };
+};
 
 export const getOrCreateClassroomReportConfiguration = async (classroomId) => {
   let config = await prisma.classroomReportConfiguration.findUnique({
@@ -21,7 +51,7 @@ export const getOrCreateClassroomReportConfiguration = async (classroomId) => {
       data: {
         classroomId,
         institutionId: classroom.institutionId,
-        configuration: {},
+        configuration: getDefaultConfiguration(),
       },
       include: {
         Classes: true,
@@ -30,7 +60,7 @@ export const getOrCreateClassroomReportConfiguration = async (classroomId) => {
     });
   }
 
-  return config;
+  return flattenConfig(config);
 }
 
 export const updateClassroomReportConfiguration = async (classroomId, configuration) => {
@@ -43,5 +73,5 @@ export const updateClassroomReportConfiguration = async (classroomId, configurat
     },
   });
 
-  return config;
+  return flattenConfig(config);
 }

@@ -36,33 +36,46 @@ export const getOrCreateStudentLastReport = async (student, classroom, userId) =
       },
     });
 
-    report = await prisma.reports.create({
-      data: {
-        studentId: student,
-        classroomId: classroom,
-        institutionId: classroomRecord.institutionId,
-        teacherId: classroomRecord.mainTeacherId || userId,
-        updatedBy: {
-          connect: { id: userId },
+    const reportInclude = {
+      Students: true,
+      Classes: {
+        include: {
+          Levels: true,
+          users: true,
         },
       },
-      include: {
-        Students: true,
-        Classes: {
-          include: {
-            Levels: true,
-            users: true,
-          },
-        },
-        Institutions: true,
-        users_Reports_teacherIdTousers: true,
-        Observations: {
-          include: {
-            users: true,
-          },
+      Institutions: true,
+      users_Reports_teacherIdTousers: true,
+      Observations: {
+        include: {
+          users: true,
         },
       },
-    });
+    };
+
+    try {
+      report = await prisma.reports.create({
+        data: {
+          studentId: student,
+          classroomId: classroom,
+          institutionId: classroomRecord.institutionId,
+          teacherId: classroomRecord.mainTeacherId || userId,
+          users_UpdatedBy: {
+            connect: { id: userId },
+          },
+        },
+        include: reportInclude,
+      });
+    } catch (e) {
+      if (e.code === 'P2002') {
+        report = await prisma.reports.findUnique({
+          where: { studentId_classroomId: { studentId: student, classroomId: classroom } },
+          include: reportInclude,
+        });
+      } else {
+        throw e;
+      }
+    }
   }
 
   // Transform observationsByCore if it exists
