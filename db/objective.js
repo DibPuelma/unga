@@ -232,6 +232,19 @@ export const updateObjective = async (objectiveId, { name, position, newClassroo
           },
         })),
       };
+
+      const childSubObjectives = await prisma.subObjectives.findMany({
+        where: { objectiveId },
+      });
+      for (const sub of childSubObjectives) {
+        await prisma.subObjectives.update({
+          where: { id: sub.id },
+          data: {
+            Levels: { set: allLevelIds.map((id) => ({ id })) },
+            Classes: { set: allClassrooms.map((c) => ({ id: c.id })) },
+          },
+        });
+      }
     }
   }
 
