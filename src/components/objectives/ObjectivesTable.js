@@ -71,6 +71,7 @@ export default function ObjectivesTable({
   const [rowsPerPage, setRowsPerPage] = useState(20);
   const [search, setSearch] = useState('');
   const [filterCoreId, setFilterCoreId] = useState('');
+  const [filterLevelId, setFilterLevelId] = useState('');
   const [filterClassroomId, setFilterClassroomId] = useState('');
   const [showNewForm, setShowNewForm] = useState(false);
   const [massCreateDialogOpen, setMassCreateDialogOpen] = useState(false);
@@ -84,17 +85,27 @@ export default function ObjectivesTable({
     }, {})
   );
   const allowedClassroomsIds = useMemo(() => allowedClassrooms.map((classroom) => classroom.id), [allowedClassrooms]);
+  const uniqueLevels = useMemo(() => {
+    const map = new Map();
+    allowedClassrooms.forEach(c => {
+      const id = c.level?.id || c.levelId;
+      const name = c.Levels?.name || c.level?.name || c.levelName;
+      if (id && name) map.set(id, name);
+    });
+    return [...map.entries()].map(([id, name]) => ({ id, name }));
+  }, [allowedClassrooms]);
 
   const filteredRows = useMemo(() => rows.filter((row) => {
     if (search && !row.name.toLowerCase().includes(search.toLowerCase())) return false;
     if (filterCoreId && String(row.coreId) !== String(filterCoreId)) return false;
+    if (filterLevelId && !row.levelsIds.includes(filterLevelId)) return false;
     if (filterClassroomId === CLASSROOM_FILTER_UNASSIGNED) {
       if (row.classrooms.length > 0) return false;
     } else if (filterClassroomId && !row.classrooms.map(String).includes(String(filterClassroomId))) {
       return false;
     }
     return true;
-  }), [rows, search, filterCoreId, filterClassroomId]);
+  }), [rows, search, filterCoreId, filterLevelId, filterClassroomId]);
 
   const orderedRows = useMemo(
     () => stableSort(filteredRows, getComparator(order, orderBy)),
@@ -299,6 +310,27 @@ export default function ObjectivesTable({
               <MenuItem value="">Todos</MenuItem>
               {allCores.map((core) => (
                 <MenuItem key={core.id} value={core.id}>{core.name}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <FormControl
+            size="small"
+            variant="standard"
+            sx={{ minWidth: 160, display: showNewForm ? 'none' : 'inherit' }}
+          >
+            <InputLabel id="objectives-filter-level-label">Nivel</InputLabel>
+            <Select
+              labelId="objectives-filter-level-label"
+              value={filterLevelId}
+              label="Nivel"
+              onChange={(e) => {
+                setFilterLevelId(e.target.value);
+                setPage(0);
+              }}
+            >
+              <MenuItem value="">Todos</MenuItem>
+              {uniqueLevels.map((level) => (
+                <MenuItem key={level.id} value={level.id}>{level.name}</MenuItem>
               ))}
             </Select>
           </FormControl>
