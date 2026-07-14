@@ -89,7 +89,7 @@ export default function ObjectivesTable({
     const map = new Map();
     allowedClassrooms.forEach(c => {
       const id = c.level?.id || c.levelId;
-      const name = c.level?.name || c.levelName;
+      const name = c.Levels?.name || c.level?.name || c.levelName;
       if (id && name) map.set(id, name);
     });
     return [...map.entries()].map(([id, name]) => ({ id, name }));

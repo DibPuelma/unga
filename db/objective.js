@@ -234,7 +234,7 @@ export const updateObjective = async (objectiveId, { name, position, newClassroo
       };
 
       const childSubObjectives = await prisma.subObjectives.findMany({
-        where: { objectiveId },
+        where: { objectiveId, deletedAt: null },
       });
       for (const sub of childSubObjectives) {
         await prisma.subObjectives.update({
