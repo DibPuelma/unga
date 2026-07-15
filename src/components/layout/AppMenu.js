@@ -279,8 +279,7 @@ export default function AppMenu({ institution, user, width, open, toggleDrawer, 
             overflowY: 'auto',
             overflowX: 'hidden',
             flex: 1,
-            display: 'flex',
-            flexDirection: 'column',
+            minHeight: 0,
           }}
         >
         {user.role === 'superAdmin' && (
