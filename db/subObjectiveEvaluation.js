@@ -39,7 +39,7 @@ export const createSubObjectiveEvaluation = async (data) => {
 
   if (!classroom) throw new Error('Classroom not found');
 
-  const evaluation = await prisma.subObjectiveEvaluation.create({
+  const evaluation = await prisma.subObjectivesEvaluations.create({
     data: {
       subObjectiveId,
       studentId,
@@ -72,7 +72,7 @@ export const createSubObjectiveEvaluation = async (data) => {
 }
 
 export const getSubObjectivesEvaluationsByInstitution = async (institutionId) => {
-  const evaluations = await prisma.subObjectiveEvaluation.findMany({
+  const evaluations = await prisma.subObjectivesEvaluations.findMany({
     where: {
       institutionId,
       SubObjectives: {
@@ -110,7 +110,7 @@ export const getSubObjectivesEvaluationsByStudentAndCore = async (
   startDate = moment().startOf('year').format('YYYY-MM-DD'),
   endDate = moment().add(1, 'day').format('YYYY-MM-DD'),
 ) => {
-  const evaluations = await prisma.subObjectiveEvaluation.findMany({
+  const evaluations = await prisma.subObjectivesEvaluations.findMany({
     where: {
       studentId,
       SubObjectives: {
@@ -123,15 +123,15 @@ export const getSubObjectivesEvaluationsByStudentAndCore = async (
       },
     },
     include: {
-      subObjective: true,
-      levelOfAchievement: true,
+      SubObjectives: true,
+      LevelsOfAchievement_SubObjectivesEvaluations_levelOfAchievementIdToLevelsOfAchievement: true,
     },
     take: 100000,
   });
 
   return evaluations.map((evaluation) => ({
     ...evaluation,
-    subObjective: evaluation.subObjective,
-    levelOfAchievement: evaluation.levelOfAchievement,
+    subObjective: evaluation.SubObjectives,
+    levelOfAchievement: evaluation.LevelsOfAchievement_SubObjectivesEvaluations_levelOfAchievementIdToLevelsOfAchievement,
   }));
 }
