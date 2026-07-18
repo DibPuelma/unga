@@ -266,6 +266,7 @@ export default function AppMenu({ institution, user, width, open, toggleDrawer, 
             display: 'flex',
             flexDirection: 'column',
             height: '100%',
+            overflow: 'hidden',
           },
         }}
       >
