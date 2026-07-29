@@ -36,7 +36,14 @@ export default function PrintReport({
   const backgroundGray = '#f5f5f5';
 
   useEffect(() => {
-    if (!classroomReportConfiguration.showAttendance) setAttendanceFinishedRendering(true);
+    if (!classroomReportConfiguration.showAttendance) {
+      setAttendanceFinishedRendering(true);
+      return;
+    }
+    // Chart.js's animation.onComplete doesn't always fire (notably with animation
+    // duration 0), which would leave the download stuck waiting forever.
+    const fallbackTimeout = setTimeout(() => setAttendanceFinishedRendering(true), 3000);
+    return () => clearTimeout(fallbackTimeout);
   }, [])
 
   useEffect(() => {
