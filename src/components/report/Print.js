@@ -255,22 +255,24 @@ export default function PrintReport({
           </Grid>
         </Grid>
       </Stack>
-      <Box sx={{ breakBefore: 'page' }}>
+      <Box>
         {Object.entries(coresByScopes).filter(
           ([_, cores]) => cores.reduce((acc, core) => acc || Object.values(core.objectives).reduce((acc, objectives) => acc || objectives.length > 0, false), false)
-        ).map(([scope, cores], i) => (
-          <Box key={scope} mt="1cm" sx={i < Object.keys(coresByScopes).length - 1 ? { breakAfter: 'page' } : {}}>
-            <Typography variant="h4" mb={4} textAlign="center"><b>{scope}</b></Typography>
-            {descriptionByScope[scope] && (
-              <Stack sx={{ backgroundColor: backgroundGray }} direction="row" alignItems="flex-start" px={6} py={2} spacing={4} mb={6}>
-                <Typography variant="h6" flex={1} lineHeight={1.3}><b>Comentarios</b></Typography>
-                <Typography flex={3} textAlign="justify" whiteSpace="pre-line">{descriptionByScope[scope]}</Typography>
-              </Stack>
-            )}
-            <Box my={4}>
+        ).map(([scope, cores]) => (
+          <Box key={scope} mt="1cm">
+            <Box sx={{ breakInside: 'avoid' }}>
+              <Typography variant="h4" mb={4} textAlign="center"><b>{scope}</b></Typography>
+              {descriptionByScope[scope] && (
+                <Stack sx={{ backgroundColor: backgroundGray }} direction="row" alignItems="flex-start" px={6} py={2} spacing={4} mb={6}>
+                  <Typography variant="h6" flex={1} lineHeight={1.3}><b>Comentarios</b></Typography>
+                  <Typography flex={3} textAlign="justify" whiteSpace="pre-line">{descriptionByScope[scope]}</Typography>
+                </Stack>
+              )}
+            </Box>
+            <Box my={2}>
               {cores.map((core, j) => (
-                <Box key={core.name} mt={8}>
-                  <Box px={6} mb={4}>
+                <Box key={core.name} mt={4}>
+                  <Box px={6} mb={2}>
                     <CoreReportDetail
                       qualitativeOnly={institution.qualitativeOnly}
                       core={core}

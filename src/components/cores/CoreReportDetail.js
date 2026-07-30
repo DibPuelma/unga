@@ -17,10 +17,10 @@ export default function CoreReportDetail({
         </Typography>
       ) : (
         <>
-          <Box mb={4} sx={{ breakInside: 'avoid' }}>
+          <Box mb={2} sx={{ breakInside: 'avoid', breakAfter: 'avoid' }}>
             <ReportCoreHeader core={core} timePeriods={timePeriods}/>
           </Box>
-          <Box mb={8}>
+          <Box mb={3}>
             <ReportObjectivesList
               coreId={core.id}
               objectives={core.objectives}

@@ -61,7 +61,7 @@ export default function ReportObjectivesList({
           }
           td {
             min-width: 50px;
-            padding-top: 0.5rem;
+            padding-top: 0.25rem;
           }
           .td-no-padding {
             padding: 0;
