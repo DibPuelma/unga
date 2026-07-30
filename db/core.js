@@ -144,6 +144,7 @@ export const getCoresWithLevelsOfAchievementByObjectiveAndSubObjective = async (
           },
           Evaluations: {
             where: {
+              studentId: { in: students.map((s) => s.id) },
               createdAt: {
                 gte: new Date(startDate),
                 lte: new Date(endDate),
@@ -153,6 +154,7 @@ export const getCoresWithLevelsOfAchievementByObjectiveAndSubObjective = async (
               Students: true,
               LevelsOfAchievement_Evaluations_levelOfAchievementIdToLevelsOfAchievement: true,
             },
+            orderBy: { createdAt: 'desc' },
           },
                   },
       },
@@ -410,6 +412,14 @@ export const getAllCoresWithAdvancement = async (
   startDate = moment().startOf('year').format('YYYY-MM-DD'),
   endDate = moment().add(1, 'day').format('YYYY-MM-DD'),
 ) => {
+  const students = await prisma.students.findMany({
+    where: {
+      classId: classroomId,
+      deactivatedAt: null,
+      deletedAt: null,
+    },
+  });
+
   const cores = await prisma.cores.findMany({
     where: { institutionId },
     include: {
@@ -423,6 +433,7 @@ export const getAllCoresWithAdvancement = async (
         include: {
           Evaluations: {
             where: {
+              studentId: { in: students.map((s) => s.id) },
               createdAt: {
                 gte: new Date(startDate),
                 lte: new Date(endDate),
@@ -432,17 +443,10 @@ export const getAllCoresWithAdvancement = async (
               Students: true,
               LevelsOfAchievement_Evaluations_levelOfAchievementIdToLevelsOfAchievement: true,
             },
+            orderBy: { createdAt: 'desc' },
           },
         },
       },
-    },
-  });
-
-  const students = await prisma.students.findMany({
-    where: {
-      classId: classroomId,
-      deactivatedAt: null,
-      deletedAt: null,
     },
   });
 
