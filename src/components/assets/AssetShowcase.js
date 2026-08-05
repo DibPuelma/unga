@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import Image from 'next/image';
 import ReactPlayer from 'react-player/file'
 import { Close, Download, InsertDriveFile, PictureAsPdf, VideoFile } from '@mui/icons-material';
@@ -8,23 +8,26 @@ import imageStyles from '../../styles/images.module.css'
 import axios from 'axios';
 
 export default function AssetShowcase({ assets, thumbnails, handleRemoveImage, withDownload }) {
-  const [selectedAsset, setSelectedAsset] = useState(null);
+  // `assets` arrives as an array (stored observations) or as an object keyed by asset_id
+  // (while uploading) — normalize so indexing works the same in both cases.
+  const assetList = useMemo(() => Object.values(assets || {}), [assets]);
 
-  const handleClearSelectedAsset = () => setSelectedAsset(null);
+  // Track the index, not the asset itself, so previous/next arithmetic stays valid.
+  const [selectedIndex, setSelectedIndex] = useState(null);
+  const selectedAsset = selectedIndex === null ? null : assetList[selectedIndex];
+
+  const handleClearSelectedAsset = () => setSelectedIndex(null);
 
   const handleSelectAsset = (i) => {
-    setSelectedAsset(assets[i]);
+    setSelectedIndex(i);
   }
 
   const handlePreviousAsset = () => {
-    let newSelectedAsset = selectedAsset - 1;
-    if (newSelectedAsset < 0) newSelectedAsset = assets.length - 1;
-    setSelectedAsset(newSelectedAsset);
+    setSelectedIndex((oldIndex) => (oldIndex - 1 + assetList.length) % assetList.length);
   }
 
   const handleNextAsset = () => {
-    let newSelectedAsset = (selectedAsset + 1) % assets.length;
-    setSelectedAsset(newSelectedAsset)
+    setSelectedIndex((oldIndex) => (oldIndex + 1) % assetList.length);
   }
 
   const handleDownload = (asset) => {
@@ -117,8 +120,7 @@ export default function AssetShowcase({ assets, thumbnails, handleRemoveImage, w
       fullWidth
       maxWidth="lg"
       open={
-        selectedAsset !== null
-        && (selectedAsset.resource_type === 'video' || selectedAsset.resource_type === 'image')
+        selectedAsset?.resource_type === 'video' || selectedAsset?.resource_type === 'image'
       }
       onClose={handleClearSelectedAsset}
     >
@@ -133,12 +135,15 @@ export default function AssetShowcase({ assets, thumbnails, handleRemoveImage, w
         </IconButton>
       </Box>
       <DialogContent sx={{ height: "80vh" }}>
-        <Box width='100%' height="90%">
+        <Box width='100%' height="90%" position="relative">
           {selectedAsset?.resource_type === 'image' && (
             <Image
-              objectFit="contain"
-              layout="fill"
+              fill
               src={selectedAsset?.secure_url}
+              alt={selectedAsset?.original_filename || 'Imagen de la observación'}
+              sizes="90vw"
+              quality={90}
+              style={{ objectFit: 'contain' }}
             />
           )}
           {selectedAsset?.resource_type === 'video' && (
@@ -151,7 +156,7 @@ export default function AssetShowcase({ assets, thumbnails, handleRemoveImage, w
           )}
         </Box>
       </DialogContent>
-      {assets.width > 0 && (
+      {assetList.length > 1 && (
         <DialogActions sx={{ display: 'flex', justifyContent: 'space-between' }}>
           <Button variant="contained" onClick={handlePreviousAsset}>Anterior</Button>
           <Button variant="contained" onClick={handleNextAsset}>Siguiente</Button>
@@ -169,8 +174,8 @@ export default function AssetShowcase({ assets, thumbnails, handleRemoveImage, w
         alignItems="flex-end"
         spacing={2}
       >
-        {Object.entries(assets).map(([key, asset], i) => (
-          <AssetStack asset={asset} i={i} key={key} />
+        {assetList.map((asset, i) => (
+          <AssetStack asset={asset} i={i} key={asset.asset_id || i} />
         ))}
         <AssetDialog />
       </Stack>
