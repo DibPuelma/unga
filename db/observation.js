@@ -280,12 +280,48 @@ export const getObservationsByClass = async (classroomId) => {
   }));
 }
 
-export const getFullObservationsByClass = async ({ classroomId, pageSize = 100 }) => {
+export const getFullObservationsByClass = async ({ classroomId, pageSize = 20, after, startDate, endDate }) => {
+  const where = {
+    classroomId,
+    deletedAt: null,
+  };
+
+  if (startDate && endDate) {
+    where.observedAt = { gte: new Date(startDate), lte: new Date(endDate) };
+  }
+
+  // Prisma cursor-based pagination
+  // Since we order by [observedAt desc, id desc], items that come AFTER the cursor are:
+  // observedAt < cursor.observedAt, OR (observedAt === cursor.observedAt AND id < cursor.id).
+  // observedAt only has day precision, so many rows tie on it — the tie-break must compare
+  // id with `lt` (matching the secondary sort direction), not just exclude the cursor's own id,
+  // otherwise rows tied with the cursor and already returned on the previous page reappear.
+  if (after) {
+    const cursorObservation = await prisma.observations.findUnique({
+      where: { id: after },
+      select: { observedAt: true },
+    });
+
+    if (cursorObservation) {
+      where.AND = [
+        ...(where.AND || []),
+        {
+          OR: [
+            { observedAt: { lt: cursorObservation.observedAt } },
+            {
+              AND: [
+                { observedAt: cursorObservation.observedAt },
+                { id: { lt: after } },
+              ],
+            },
+          ],
+        },
+      ];
+    }
+  }
+
   const observations = await prisma.observations.findMany({
-    where: {
-      classroomId,
-      deletedAt: null,
-    },
+    where,
     include: {
       Students: {
         where: {
@@ -299,19 +335,28 @@ export const getFullObservationsByClass = async ({ classroomId, pageSize = 100 }
       PlannedActivities: true,
     },
     take: pageSize,
-    orderBy: { observedAt: 'desc' },
+    orderBy: [
+      { observedAt: 'desc' },
+      { id: 'desc' }, // Secondary sort for consistent ordering
+    ],
   });
 
+  // Return the last item's ID as the next cursor, or null if no more pages
+  const nextCursor = observations.length === pageSize ? observations[observations.length - 1].id : null;
+
   // Transform to lowercase for backward compatibility
-  return observations.map(obs => ({
-    ...obs,
-    assets: parseObservationAssets(obs.assets),
-    students: obs.Students || [],
-    teacher: obs.users,
-    classroom: obs.Classes,
-    core: obs.Cores,
-    plannedActivity: obs.PlannedActivities,
-  }));
+  return {
+    data: observations.map(obs => ({
+      ...obs,
+      assets: parseObservationAssets(obs.assets),
+      students: obs.Students || [],
+      teacher: obs.users,
+      classroom: obs.Classes,
+      core: obs.Cores,
+      plannedActivity: obs.PlannedActivities,
+    })),
+    after: nextCursor,
+  };
 }
 
 export const getObservationsByInstitution = async (institutionId) => {
