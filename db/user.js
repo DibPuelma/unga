@@ -20,6 +20,37 @@ const normalizeInstitutionLogoForRead = (institution) => {
   }
 };
 
+// profilePicture/signature are TEXT columns but the UI sends a Cloudinary asset object.
+// Store them as JSON strings and parse them back on read.
+const normalizeAssetForWrite = (asset) => {
+  if (asset === undefined) return undefined;
+  if (asset === null) return null;
+  if (typeof asset === 'string') return asset;
+  if (typeof asset === 'object') return JSON.stringify(asset);
+  return null;
+};
+
+const normalizeAssetForRead = (asset) => {
+  if (!asset) return asset;
+  if (typeof asset === 'object') return asset;
+  if (typeof asset !== 'string') return null;
+
+  try {
+    return JSON.parse(asset);
+  } catch (_) {
+    return asset;
+  }
+};
+
+export const withParsedAssets = (user) => {
+  if (!user) return user;
+  return {
+    ...user,
+    profilePicture: normalizeAssetForRead(user.profilePicture),
+    signature: normalizeAssetForRead(user.signature),
+  };
+};
+
 export const createUser = async ({
   firstName,
   lastName,
@@ -127,6 +158,14 @@ export const updateUser = async (userId, data) => {
     updateData.password = await bcrypt.hash(data.password, 10);
   }
 
+  if (data.profilePicture !== undefined) {
+    updateData.profilePicture = normalizeAssetForWrite(data.profilePicture);
+  }
+
+  if (data.signature !== undefined) {
+    updateData.signature = normalizeAssetForWrite(data.signature);
+  }
+
   const updatedUser = await prisma.users.update({
     where: { id: userId },
     data: updateData,
@@ -136,7 +175,7 @@ export const updateUser = async (userId, data) => {
     new SendAddRoleToUserSlackMessage(updatedUser).perform();
   }
 
-  return updatedUser;
+  return withParsedAssets(updatedUser);
 }
 
 export const getUserData = async (userId) => {
@@ -150,10 +189,10 @@ export const getUserData = async (userId) => {
   if (!user) return null;
 
   // Map Institutions to institution for backward compatibility
-  return {
+  return withParsedAssets({
     ...user,
     institution: normalizeInstitutionLogoForRead(user.Institutions),
-  };
+  });
 }
 
 export const getAllInstitutionUsers = async (institutionId) => {
@@ -175,7 +214,7 @@ export const getInstitutionPrincipals = async (institutionId) => {
     },
   });
 
-  return users;
+  return users.map(withParsedAssets);
 }
 
 export const getInstitutionCoordinators = async (institutionId) => {
@@ -187,7 +226,7 @@ export const getInstitutionCoordinators = async (institutionId) => {
     },
   });
 
-  return users;
+  return users.map(withParsedAssets);
 }
 
 export const getInstitutionTeachers = async (institutionId) => {

@@ -1,6 +1,7 @@
 import prisma from './prisma';
 import { addClassroomToObjectivesByLevelAndInstitution, removeClassroomFromObjectives } from './objective';
 import { removeClassroomFromSubObjectives, addClassroomToSubObjectivesByLevelAndInstitution } from './subObjectives';
+import { withParsedAssets } from './user';
 
 export const createClassroom = async ({ name, level, institution, mainTeacher }) => {
   const classroom = await prisma.classes.create({
@@ -64,8 +65,8 @@ export const getClassroom = async (classroomId) => {
   // Transform to lowercase for backward compatibility
   return JSON.parse(JSON.stringify({
     ...classroom,
-    mainTeacher: classroom.users,
-    allTeachers: teachers,
+    mainTeacher: withParsedAssets(classroom.users),
+    allTeachers: teachers.map(withParsedAssets),
     level: classroom.Levels,
     institution: classroom.Institutions,
     studentCount: classroom._count.Students,

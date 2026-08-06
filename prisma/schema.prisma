@@ -709,6 +709,8 @@ model users {
   selectedFreeTrialPlan                                  String?
   seenActivities                                         String[]                       @default([])
   classrooms                                             String[]                       @default([])
+  profilePicture                                         String?
+  signature                                              String?
   deletedAt                                              DateTime?
   createdAt                                              DateTime                       @default(now())
   updatedAt                                              DateTime                       @updatedAt
