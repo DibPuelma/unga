@@ -77,6 +77,7 @@ export default function Profile({ user }) {
     // Assets are an object.
     // This is a single input, therefore position 0 will always be the only asset uploaded
     const asset = Object.values(assetObject)[0];
+    const previousData = assets[path].data;
     setAssets((oldData) => ({
       ...oldData,
       [path]: {
@@ -95,12 +96,11 @@ export default function Profile({ user }) {
       }))
     } catch (e) {
       setAxiosError(`No pudimos actualizar tu ${path === 'signature' ? 'firma' : 'foto de perfil'}`)
-    } finally {
       setAssets((oldData) => ({
         ...oldData,
         [path]: {
-          ...oldData[path],
           loading: false,
+          data: previousData
         }
       }))
     }
