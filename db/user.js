@@ -42,7 +42,7 @@ const normalizeAssetForRead = (asset) => {
   }
 };
 
-const withParsedAssets = (user) => {
+export const withParsedAssets = (user) => {
   if (!user) return user;
   return {
     ...user,
@@ -214,7 +214,7 @@ export const getInstitutionPrincipals = async (institutionId) => {
     },
   });
 
-  return users;
+  return users.map(withParsedAssets);
 }
 
 export const getInstitutionCoordinators = async (institutionId) => {
@@ -226,7 +226,7 @@ export const getInstitutionCoordinators = async (institutionId) => {
     },
   });
 
-  return users;
+  return users.map(withParsedAssets);
 }
 
 export const getInstitutionTeachers = async (institutionId) => {

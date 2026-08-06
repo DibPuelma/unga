@@ -1,5 +1,6 @@
 import prisma from './prisma';
 import { parseObservationAssets } from './observation';
+import { withParsedAssets } from './user';
 
 export const getOrCreateStudentLastReport = async (student, classroom, userId) => {
   let report = await prisma.reports.findUnique({
@@ -104,7 +105,7 @@ export const getOrCreateStudentLastReport = async (student, classroom, userId) =
     classroom: {
       ...report.Classes,
       level: report.Classes.Levels,
-      mainTeacher: report.Classes.users,
+      mainTeacher: withParsedAssets(report.Classes.users),
     },
     institution: report.Institutions,
     student: report.Students,
