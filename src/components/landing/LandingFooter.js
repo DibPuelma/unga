@@ -14,7 +14,7 @@ export default function LandingFooter() {
           alignItems={{ xs: 'flex-start', md: 'center' }}
         >
           <Stack direction="row" spacing={1} alignItems="center">
-            <Image src="/logo-white.png" alt="Unga" width={32} height={32} />
+            <Image src="/logo-mark.png" alt="Unga" width={47} height={32} />
             <Typography sx={{ fontWeight: 700 }}>Unga</Typography>
           </Stack>
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={{ xs: 1, sm: 3 }}>

@@ -9,7 +9,7 @@ export default function LandingNav() {
       <Container maxWidth="lg">
         <Toolbar disableGutters sx={{ justifyContent: 'space-between' }}>
           <Stack direction="row" alignItems="center" spacing={1}>
-            <Image src="/logo-orange.png" alt="Unga" width={40} height={40} />
+            <Image src="/logo-mark.png" alt="Unga" width={59} height={40} />
             <Box sx={{ fontWeight: 700, fontSize: 22, color: '#575757' }}>Unga</Box>
           </Stack>
           <Stack direction="row" spacing={2} alignItems="center" sx={{ display: { xs: 'none', md: 'flex' } }}>

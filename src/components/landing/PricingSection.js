@@ -7,7 +7,6 @@ import { SUBSCRIPTION_PRICE_CLP, MONTHLY_CREDITS, SIGNUP_CREDITS } from 'src/hel
 const FEATURES = [
   `${MONTHLY_CREDITS} creaciones con IA al mes`,
   'Biblioteca personal de experiencias',
-  'Experiencias certificadas Unga',
   'Planificación semanal (calendario)',
   'Descarga en PDF lista para imprimir',
   'Alineado a las Bases Curriculares de la Educación Parvularia',
