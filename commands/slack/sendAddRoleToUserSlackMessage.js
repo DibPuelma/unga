@@ -18,7 +18,7 @@ export default class SendAddRoleToUserSlackMessage {
 
   getChannel() {
     if (process.env.NODE_ENV !== 'production') return '#notifications-dev';
-    if (this.user.plan === 'trial') return '#notifications-acquisition';
+    if (this.user.plan === 'free') return '#notifications-acquisition';
 
     return '#notifications';
   }

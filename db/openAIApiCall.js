@@ -1,7 +1,7 @@
 import prisma from './prisma';
 
 export const createOpenAIApiCall = async (data) => {
-  const call = await prisma.openAIApiCall.create({
+  const call = await prisma.openAIApiCalls.create({
     data: {
       userId: data.userId,
       prompt: data.prompt || null,
@@ -9,16 +9,13 @@ export const createOpenAIApiCall = async (data) => {
       model: data.model || null,
       tokensUsed: data.tokensUsed || null,
     },
-    include: {
-      user: true,
-    },
   });
 
   return call;
 }
 
 export const getOpenAIApiCalls = async (userId) => {
-  const calls = await prisma.openAIApiCall.findMany({
+  const calls = await prisma.openAIApiCalls.findMany({
     where: { userId },
     orderBy: { createdAt: 'desc' },
     take: 100,

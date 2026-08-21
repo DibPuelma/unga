@@ -32,7 +32,7 @@ import usePlanUpgradeWarning from 'src/hooks/usePlanUpgradeWarning';
 import { serializeForNextProps } from 'src/helpers/businessLogic';
 
 export async function getServerSideProps(context) {
-  const [isAuthorizedValue, returnValue] = await isAuthorized(context, PlansService.plansFromIndividualGrow);
+  const [isAuthorizedValue, returnValue] = await isAuthorized(context, PlansService.PLANS_WITH_PLANNING);
   if (!isAuthorizedValue) return returnValue;
 
   const session = await getServerSession(context.req, context.res, authOptions);

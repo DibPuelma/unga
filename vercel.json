@@ -1,0 +1,32 @@
+{
+  "crons": [
+    {
+      "path": "/api/mailing/registered-users/public-activities-examples",
+      "schedule": "0 6 * * *"
+    },
+    {
+      "path": "/api/mailing/registered-users/planning-explanation",
+      "schedule": "05 6 * * *"
+    },
+    {
+      "path": "/api/mailing/registered-users/ai-planning-explanation",
+      "schedule": "10 6 * * *"
+    },
+    {
+      "path": "/api/mailing/registered-users/evaluation-explanation",
+      "schedule": "15 6 * * *"
+    },
+    {
+      "path": "/api/ai/generate-activities",
+      "schedule": "0 */2 * * *"
+    },
+    {
+      "path": "/api/payments/charge-renewals",
+      "schedule": "0 5 1 * *"
+    },
+    {
+      "path": "/api/payments/retry-failed",
+      "schedule": "30 5 * * *"
+    }
+  ]
+}

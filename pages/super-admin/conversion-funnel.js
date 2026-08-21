@@ -8,9 +8,8 @@ import PlansService from "services/PlansService";
 
 const keyToLabel = {
   registeredUsers: 'Registrados',
-  usersWithoutAPlan: 'Sin plan',
-  trialUsers: 'Periodo de prueba',
-  payingUsers: 'Pagando',
+  freeUsers: 'Gratis (sin suscripción)',
+  payingUsers: 'Suscritos',
   canceledUsers: 'Cancelados',
 };
 
@@ -19,7 +18,7 @@ export async function getServerSideProps(context) {
   if (!isAuthorizedValue) return returnValue;
 
   const users = await getAllUsers();
-  const B2CUsers = users.filter((user) => PlansService.individualPlans.includes(user.plan) && user.createdAt);
+  const B2CUsers = users.filter((user) => PlansService.B2C_PLANS.includes(user.plan) && user.createdAt);
   return {
     props: {
       users: B2CUsers,
@@ -43,9 +42,8 @@ export default function ConversionFunnel({ users }) {
     )
     const usersData = {
       registeredUsers: usersConsideringDate,
-      usersWithoutAPlan: usersConsideringDate.filter((user) => user.plan === 'trial' && !user.selectedFreeTrialPlan && !Boolean(user.planCanceledAt)),
-      trialUsers: usersConsideringDate.filter((user) => user.plan === 'trial' && user.selectedFreeTrialPlan),
-      payingUsers: usersConsideringDate.filter((user) => user.plan !== 'trial'),
+      freeUsers: usersConsideringDate.filter((user) => user.plan === 'free' && !Boolean(user.planCanceledAt)),
+      payingUsers: usersConsideringDate.filter((user) => user.plan === 'unga'),
       canceledUsers: usersConsideringDate.filter((user) => Boolean(user.planCanceledAt)),
     };
 
@@ -54,10 +52,9 @@ export default function ConversionFunnel({ users }) {
   }, [fromDate, toDate])
 
   const getType = (user) => {
-    if (user.plan === 'trial' && !user.selectedFreeTrialPlan && !Boolean(user.planCanceledAt)) return 'usersWithoutAPlan';
-    if (user.plan === 'trial' && user.selectedFreeTrialPlan) return 'trialUsers';
-    if (user.plan !== 'trial') return 'payingUsers';
+    if (user.plan === 'unga') return 'payingUsers';
     if (Boolean(user.planCanceledAt)) return 'canceledUsers';
+    if (user.plan === 'free') return 'freeUsers';
   }
 
 

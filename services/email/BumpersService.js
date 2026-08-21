@@ -1,15 +1,11 @@
 import { getNonHeterogeneousLevels } from "db/level";
-import { getRegisteredUsersWithDaysAgeEqualTo, getTrialUsersWithDaysAgeEqualTo } from "db/user";
+import { getRegisteredUsersWithDaysAgeEqualTo } from "db/user";
 import StatisticsService from "services/StatisticsService";
 import { sendExampleActivitiesEmail, sendGenericMassiveEmailWithFirstName } from "./users";
 import { intersection } from "lodash";
 import PlanningExplanationEmail from "src/emails/PlanningExplanation";
 import AIPlanningExplanationEmail from "src/emails/AIPlanningExplanation";
 import EvaluationExplanationEmail from "src/emails/EvaluationExplanation";
-import TrialPlanningExplanationEmail from "src/emails/TrialPlanningExplanation";
-import TrialEvaluationExplanationEmail from "src/emails/TrialEvaluationExplanation";
-import TrialDownloadReportsEmail from "src/emails/TrialDownloadReports";
-import TrialAttendanceExplanationEmail from "src/emails/TrialAttendanceExplanation";
 
 export default class BumperEmailsService {
   static async sendActivitiesExamplesToRegisteredUsers() {
@@ -74,51 +70,7 @@ export default class BumperEmailsService {
     });
   }
 
-  static async sendPlanningExplanationToTrialUsers() {
-    const ageInDays = 1;
-    const users = await getTrialUsersWithDaysAgeEqualTo(ageInDays);
-    if (users.length === 0) return;
 
-    sendGenericMassiveEmailWithFirstName({
-      users,
-      EmailComponent: TrialPlanningExplanationEmail,
-      subject: 'Comienza tu prueba planificando',
-    });
-  }
 
-  static async sendEvaluationExplanationToTrialUsers() {
-    const ageInDays = 2;
-    const users = await getTrialUsersWithDaysAgeEqualTo(ageInDays);
-    if (users.length === 0) return;
 
-    sendGenericMassiveEmailWithFirstName({
-      users,
-      EmailComponent: TrialEvaluationExplanationEmail,
-      subject: 'Evalua en minutos durante tu prueba',
-    });
-  }
-
-  static async sendDownloadReportsExplanationToTrialUsers() {
-    const ageInDays = 3;
-    const users = await getTrialUsersWithDaysAgeEqualTo(ageInDays);
-    if (users.length === 0) return;
-
-    sendGenericMassiveEmailWithFirstName({
-      users,
-      EmailComponent: TrialDownloadReportsEmail,
-      subject: 'Comparte avances con reportes',
-    });
-  }
-
-  static async sendAttendanceExplanationToTrialUsers() {
-    const ageInDays = 4;
-    const users = await getTrialUsersWithDaysAgeEqualTo(ageInDays);
-    if (users.length === 0) return;
-
-    sendGenericMassiveEmailWithFirstName({
-      users,
-      EmailComponent: TrialAttendanceExplanationEmail,
-      subject: 'Registra asistencia de forma simple',
-    });
-  }
 }

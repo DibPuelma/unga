@@ -13,14 +13,14 @@ export default class SendNewUserSlackMessage {
 
   getChannel() {
     if (process.env.NODE_ENV !== 'production') return '#notifications-dev';
-    if (this.user.plan === 'trial') return '#notifications-acquisition';
+    if (this.user.plan === 'free') return '#notifications-acquisition';
 
     return '#notifications';
   }
 
   getOrigin() {
     if (this.user.plan === 'institutional') return 'desde una institución';
-    if (this.user.plan === 'trial') return 'desde una cuenta de pruebas';
+    if (this.user.plan === 'free') return 'desde una cuenta de pruebas';
   }
 
   #generateMessage() {

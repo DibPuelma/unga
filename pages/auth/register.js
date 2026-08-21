@@ -1,27 +1,18 @@
-import React, { useState, useContext, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image'
 import { useRouter } from 'next/router';
 import { useSession, signIn } from "next-auth/react"
-import { Box, Container, MenuItem, Paper, TextField, Typography } from '@mui/material';
+import { Box, Container, IconButton, InputAdornment, MenuItem, Paper, TextField, Typography } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
-import { Login as LoginIcon } from '@mui/icons-material';
+import { Login as LoginIcon, Visibility, VisibilityOff } from '@mui/icons-material';
 import { isEmail } from '../../src/helpers/strings';
-import { MixpanelContext } from '../../services/MixpanelContext';
 import Link from 'src/Link';
 import axios from 'axios';
 import PhoneInput from 'react-phone-input-2';
 import 'react-phone-input-2/lib/material.css'
 import UngaSelect from 'src/components/utils/UngaSelect';
 import TermsAndConditions from 'src/components/utils/TermsAndConditions';
-
-const fieldsInputTypes = {
-  firstName: 'text',
-  lastName: 'text',
-  email: 'email',
-  phoneNumber: 'text',
-  password: 'password',
-  confirmPassword: 'password',
-}
+import { SIGNUP_CREDITS } from 'src/helpers/plans';
 
 const REFERENCE_OPTIONS = [
   'Instagram',
@@ -35,10 +26,10 @@ const REFERENCE_OPTIONS = [
 ];
 
 export default function Register() {
-  const { trackSignUp } = useContext(MixpanelContext);
   const router = useRouter();
-  const { query: { referrer } } = router;
+  const { query: { referrer, role: roleQuery } } = router;
   const session = useSession();
+  const isParent = roleQuery === 'parent';
   const [formData, setFormData] = useState({
     firstName: {
       value: '',
@@ -59,29 +50,27 @@ export default function Register() {
       value: '',
       label: 'Número celular',
       error: '',
+      optional: true,
     },
     reference: {
       value: referrer ? 'Una colega o amiga' : '',
-      label: '¿Cómo te enteraste de Unga?*',
+      label: '¿Cómo te enteraste de Unga?',
       error: '',
+      optional: true,
     },
     password: {
       value: '',
       label: 'Contraseña*',
       error: '',
     },
-    confirmPassword: {
-      value: '',
-      label: 'Confirma tu contraseña*',
-      error: '',
-    },
   });
+  const [showPassword, setShowPassword] = useState(false);
   const [registerLoading, setRegisterLoading] = useState(false);
   const [registerError, setRegisterError] = useState('');
-  const [country, setCountry] = useState({ name: '', code: '' });
-  const hasAnyError = useMemo(() => {
+  const [country, setCountry] = useState({ name: 'Chile', code: 'cl' });
+  const hasAnyError = useMemo(() => (
     Object.keys(formData).reduce((acc, field) => acc || Boolean(formData[field].error), false)
-  }, [formData])
+  ), [formData])
 
   const setFormError = (key, error) => {
     setFormData((oldValue) => ({ ...oldValue, [key]: { ...oldValue[key], error } }))
@@ -95,9 +84,6 @@ export default function Register() {
     let errorMessage = '';
     if (name === 'email' && !isEmail(value)) {
       errorMessage = 'Por favor ingresa un email válido';
-    }
-    if (name === 'confirmPassword' && value !== formData.password.value) {
-      errorMessage = 'Las contraseñas no coinciden'
     }
     if (errorMessage) setFormError(name, errorMessage);
     else setFormError(name, '');
@@ -115,10 +101,14 @@ export default function Register() {
     setRegisterError('');
     if (hasAnyError) return;
     const fields = Object.keys(formData);
-    for (let i = 0; i < fields.length; i++) {
-      const field = fields[i];
-      if (!formData[field].value && !formData[field].optional) return setFormError(field, 'Este campo es requerido');
-    }
+    let hasMissingField = false;
+    fields.forEach((field) => {
+      if (!formData[field].value && !formData[field].optional) {
+        setFormError(field, 'Este campo es requerido');
+        hasMissingField = true;
+      }
+    });
+    if (hasMissingField) return;
 
     const {
       firstName: { value: firstName },
@@ -135,17 +125,17 @@ export default function Register() {
         firstName,
         lastName,
         email: email.toLocaleLowerCase().trim(),
-        phoneNumber: `+${phoneNumber}`,
+        phoneNumber: phoneNumber ? `+${phoneNumber}` : null,
         password,
         country,
-        reference,
-        plan: 'trial',
+        reference: reference || 'No especificado',
+        role: isParent ? 'parent' : 'teacher',
+        plan: 'free',
       })
       const { data } = response;
       if (referrer && isEmail(referrer)) {
         await axios.post('/api/referrals', { referrerEmail: referrer, referredUserId: data.id });
       }
-      // trackSignUp({ userId: data.id, email, firstName, lastName, plan: 'trial' });
       signIn('credentials', { email: email.toLocaleLowerCase().trim(), password, callbackUrl: location.origin })
     } catch (error) {
       const { response } = error;
@@ -172,9 +162,14 @@ export default function Register() {
     >
       <Image src="/logo-orange.png" alt="logo" width="128" height="128" />
       <Paper elevation={4} sx={{ py: 4, px: 2 }}>
-        <Typography variant="h4" textAlign="center" mb={3}>
-          Regístrate
+        <Typography variant="h4" textAlign="center" mb={1}>
+          Crea tu cuenta gratis
         </Typography>
+        {!isParent && (
+          <Typography variant="body2" color="text.secondary" textAlign="center" mb={3}>
+            {SIGNUP_CREDITS} experiencias con IA de regalo. Sin tarjeta.
+          </Typography>
+        )}
         <form onSubmit={handleRegister}>
           {Object.keys(formData).map((field) => {
             if (field === 'phoneNumber') {
@@ -184,7 +179,7 @@ export default function Register() {
                     onlyCountries={['cl', 'ar', 'mx', 'pe', 'co', 'uy', 'ec', 'bo', 'py', 've', 'gt', 'sv', 'hn', 'ni', 'cr', 'pa']}
                     preferredCountries={['cl', 'mx']}
                     country={'cl'}
-                    specialLabel="Número celular"
+                    specialLabel="Número celular (opcional)"
                     countryCodeEditable={false}
                     value={formData[field].value}
                     onChange={handlePhoneNumberChange}
@@ -220,6 +215,7 @@ export default function Register() {
                 />
               )
             } else {
+              const isPasswordField = field === 'password';
               return (
                 <TextField
                   key={field}
@@ -233,7 +229,21 @@ export default function Register() {
                   helperText={formData[field].error}
                   onChange={handleTextChange}
                   sx={{ mb: 2 }}
-                  type={fieldsInputTypes[field]}
+                  type={isPasswordField && !showPassword ? 'password' : field === 'email' ? 'email' : 'text'}
+                  InputProps={isPasswordField ? {
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          aria-label="mostrar contraseña"
+                          onClick={() => setShowPassword((v) => !v)}
+                          edge="end"
+                          size="small"
+                        >
+                          {showPassword ? <VisibilityOff /> : <Visibility />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  } : undefined}
                 />
               )
             }
@@ -253,7 +263,7 @@ export default function Register() {
             loadingPosition="end"
             variant="contained"
           >
-            Registrarme
+            {isParent ? 'Registrarme' : 'Crear mi cuenta'}
           </LoadingButton>
         </form>
         <Box mt={2}>
@@ -263,6 +273,15 @@ export default function Register() {
             </Typography>
           </Link>
         </Box>
+        {!isParent && (
+          <Box mt={1}>
+            <Link href="/auth/register?role=parent">
+              <Typography component="div" variant="caption" textAlign="center">
+                ¿Eres mamá o papá? Regístrate aquí
+              </Typography>
+            </Link>
+          </Box>
+        )}
         <Box mt={2}>
           <TermsAndConditions />
         </Box>

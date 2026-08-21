@@ -14,12 +14,14 @@ export default async (req, res) => {
     const prompt = generatePromptForActivity({ ageMin, ageMax, cores, curricularObjectives, objectives, subObjectives });
     const response = await suggestActivities(prompt);
     await createOpenAIApiCall({
-      ...response.data,
       ...req.query,
+      response: response.content,
+      model: response.model,
+      tokensUsed: response.usage?.total_tokens,
       prompt,
       userId,
       relatedCollection: 'Activities',
     });
-    res.status(200).json(response.data.choices[0].message.content);
+    res.status(200).json(response.content);
   }
 };
