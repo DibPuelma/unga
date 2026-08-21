@@ -20,7 +20,8 @@ import UngaSelectObjectives from "src/components/utils/UngaSelectObjectives";
 import { STATUS } from "react-joyride";
 import UngaJoyride from "src/components/utils/UngaJoyride";
 import useActivitiesFilters from "src/hooks/useActivitiesFilters";
-import useNoPlanWarning from "src/hooks/useNoPlanWarning";
+import { AutoAwesome } from "@mui/icons-material";
+import { isB2CPlan } from "src/helpers/plans";
 
 const nameMapper = ((item) => item.name)
 
@@ -51,18 +52,14 @@ export default function Activities({
 }) {
   const router = useRouter();
   const { query: { classroomId, institutionId, date } } = router;
-  const handleNoPlanWarning = useNoPlanWarning({
-    title: 'No puedes crear más de 5 experiencias',
-    description: 'Para poder crear más, debes comenzar tu prueba gratuita registrando un medio de pago',
-  })
   const {
     selectedClassroom,
     institution: { features },
     user,
     totalActivitiesCreated,
     setTotalActivitiesCreated,
-    userHasPlan,
   } = useContext(UserContext);
+  const isB2C = isB2CPlan(user?.plan);
   const recommendedLevels = useMemo(() => selectedClassroom ?
     levels.filter((level) => (
       level.id === selectedClassroom.level.id ||
@@ -105,6 +102,7 @@ export default function Activities({
   const [showMoreLoading, setShowMoreLoading] = useState(false);
   const [tabValue, setTabValue] = useState(0);
   const [showFilters, setShowFilters] = useState(smUp);
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [firstActivityChecked, setFirstActivityChecked] = useState(false);
   const [createLoading, setCreateLoading] = useState(false);
   const {
@@ -123,6 +121,15 @@ export default function Activities({
     'Biblioteca de experiencias';
 
   useEffect(() => setShowFilters(smUp), [smUp]);
+
+  // B2C: live search — filters auto-apply with a debounce, no "Aplicar" button.
+  useEffect(() => {
+    if (!isB2C || loading) return;
+    const timeout = setTimeout(() => {
+      handleSearchActivities();
+    }, 400);
+    return () => clearTimeout(timeout);
+  }, [filters]);
 
   useEffect(() => {
     const initialDataFetch = async () => {
@@ -332,7 +339,21 @@ export default function Activities({
     }
 
     if (allActivities.length === 0) {
-      return (
+      return isB2C ? (
+        <Stack spacing={2} alignItems="center" py={4}>
+          <AutoAwesome color="primary" sx={{ fontSize: 40 }} />
+          <Typography color="text.secondary" textAlign="center">
+            Aún no tienes experiencias en tu biblioteca.
+          </Typography>
+          <Button
+            variant="contained"
+            startIcon={<AutoAwesome />}
+            onClick={() => router.push(`/institutions/${institutionId}/activities/create`)}
+          >
+            Crea tu primera experiencia con IA
+          </Button>
+        </Stack>
+      ) : (
         <Typography variant="body2">
           No tienes experiencias. Crea una presionando el botón "Crear nueva experiencia" de arriba.
         </Typography>
@@ -454,10 +475,6 @@ export default function Activities({
   }
 
   const handleCreateActivity = async () => {
-    if (!userHasPlan && totalActivitiesCreated >= 5) {
-      handleNoPlanWarning();
-      return;
-    }
     setCreateLoading(true);
     const recommendedLevels = getRecommendedLevels();
     try {
@@ -490,27 +507,41 @@ export default function Activities({
       <Stack spacing={2} mb={4} mt={2}>
         <Grid container spacing={2}>
           <Grid item xs={12} display="flex" justifyContent={{ xs: 'inherit', sm: 'flex-end' }}>
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={{ xs: 1, sm: 2 }} width="100%" justifyContent="space-between">
-              <FormControlLabel
-                sx={{ ml: 0, justifyContent: { xs: 'center', sm: 'flex-end' } }}
-                control={
-                  <Switch
-                    checked={userOnlyActivities}
-                    onChange={handleuserOnlyActivitiesChange}
-                  />}
-                label="Mostrar solo mis experiencias"
-                labelPlacement='start'
-              />
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={{ xs: 1, sm: 2 }} width="100%" justifyContent={isB2C ? 'flex-end' : 'space-between'}>
+              {!isB2C && (
+                <FormControlLabel
+                  sx={{ ml: 0, justifyContent: { xs: 'center', sm: 'flex-end' } }}
+                  control={
+                    <Switch
+                      checked={userOnlyActivities}
+                      onChange={handleuserOnlyActivitiesChange}
+                    />}
+                  label="Mostrar solo mis experiencias"
+                  labelPlacement='start'
+                />
+              )}
+              {isB2C && (
+                <Button
+                  startIcon={<AutoAwesome />}
+                  variant="contained"
+                  color="primary"
+                  sx={{ mb: 0.2 }}
+                  onClick={() => router.push(`/institutions/${institutionId}/activities/create`)}
+                  id="create-with-ai-button"
+                >
+                  ✨ Crear con IA
+                </Button>
+              )}
               <LoadingButton
                 startIcon={<Add />}
-                variant="contained"
+                variant={isB2C ? 'outlined' : 'contained'}
                 color="primary"
                 sx={{ mb: 0.2 }}
                 onClick={handleCreateActivity}
                 loading={createLoading}
                 id="create-activity-button"
               >
-                Crear una nueva experiencia
+                {isB2C ? 'Crear desde cero' : 'Crear una nueva experiencia'}
               </LoadingButton>
             </Stack>
           </Grid>
@@ -573,35 +604,46 @@ export default function Activities({
                     options={levels}
                   />
                 </Grid>
-                <Grid item xs={12} sm={6} md={4}>
-                  <UngaSelect
-                    fullWidth
-                    multiple
-                    label="Buscar por núcleo"
-                    labelId="select-filter-core-label"
-                    name="cores"
-                    id="select-filter-core"
-                    value={filters.cores}
-                    onChange={handleMultipleSelectChange}
-                    options={cores}
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6} md={4}>
-                  <UngaSelectObjectives
-                    fullWidth
-                    multiple
-                    label="Buscar por objetivo de las bases"
-                    labelId="select-filter-curricular-objective-label"
-                    name="curricularObjectives"
-                    id="select-filter-curricular-objective"
-                    value={filters.curricularObjectives}
-                    onChange={handleMultipleSelectChange}
-                    objectives={curricularObjectives}
-                    filteredCores={filters.cores}
-                    filteredLevels={filters.recommendedLevels}
-                    allCores={cores}
-                  />
-                </Grid>
+                {(!isB2C || showAdvancedFilters) && (
+                  <>
+                    <Grid item xs={12} sm={6} md={4}>
+                      <UngaSelect
+                        fullWidth
+                        multiple
+                        label="Buscar por núcleo"
+                        labelId="select-filter-core-label"
+                        name="cores"
+                        id="select-filter-core"
+                        value={filters.cores}
+                        onChange={handleMultipleSelectChange}
+                        options={cores}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6} md={4}>
+                      <UngaSelectObjectives
+                        fullWidth
+                        multiple
+                        label="Buscar por objetivo de las bases"
+                        labelId="select-filter-curricular-objective-label"
+                        name="curricularObjectives"
+                        id="select-filter-curricular-objective"
+                        value={filters.curricularObjectives}
+                        onChange={handleMultipleSelectChange}
+                        objectives={curricularObjectives}
+                        filteredCores={filters.cores}
+                        filteredLevels={filters.recommendedLevels}
+                        allCores={cores}
+                      />
+                    </Grid>
+                  </>
+                )}
+                {isB2C && (
+                  <Grid item xs={12} sm={6} md={4} display="flex" alignItems="center">
+                    <Button size="small" color="inherit" onClick={() => setShowAdvancedFilters((v) => !v)}>
+                      {showAdvancedFilters ? 'Menos filtros' : 'Más filtros'}
+                    </Button>
+                  </Grid>
+                )}
                 {/* <Grid item xs={12} sm={6} md={4}>
                 <UngaSelectObjectives
                   fullWidth
@@ -632,24 +674,28 @@ export default function Activities({
                   filteredLevels={filters.recommendedLevels}
                 />
               </Grid> */}
-                <Grid item sm={6} md={4} />
-                <Grid item xs={12} sm={6} md={4} display="flex" columnGap={2} justifyContent={{ xs: 'space-between', sm: 'flex-start' }}>
-                  <Button fullWidth variant="contained" color="info" onClick={handleSearchActivities}>
-                    Aplicar Filtros
-                  </Button>
-                  <Button fullWidth variant="outlined" color="info" onClick={handleClearFilters}>Limpiar filtros</Button>
-                </Grid>
+                {!isB2C && (
+                  <>
+                    <Grid item sm={6} md={4} />
+                    <Grid item xs={12} sm={6} md={4} display="flex" columnGap={2} justifyContent={{ xs: 'space-between', sm: 'flex-start' }}>
+                      <Button fullWidth variant="contained" color="info" onClick={handleSearchActivities}>
+                        Aplicar Filtros
+                      </Button>
+                      <Button fullWidth variant="outlined" color="info" onClick={handleClearFilters}>Limpiar filtros</Button>
+                    </Grid>
+                  </>
+                )}
               </Grid>
             </Grid>
           )}
         </Grid>
         <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
           <Tabs value={tabValue} onChange={handleTabChange} aria-label="Tabs de configuración" variant="scrollable">
-            <Tab label="Experiencias del centro" id="institution-activities-tab" />
+            <Tab label={isB2C ? 'Mis experiencias' : 'Experiencias del centro'} id="institution-activities-tab" />
             <Tab
-              label="Experiencias certificadas Unga"
+              label={isB2C ? 'Biblioteca Unga' : 'Experiencias certificadas Unga'}
               id="unga-activities-tab"
-              sx={{ display: features?.includes('ungaExperiences') ? 'inline-flex' : 'none' }}
+              sx={{ display: (isB2C || features?.includes('ungaExperiences')) ? 'inline-flex' : 'none' }}
             />
             {/* <Tab label="Experiencias de la comunidad" id="community-activities-tab" /> */}
           </Tabs>

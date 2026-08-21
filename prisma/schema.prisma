@@ -707,6 +707,9 @@ model users {
   paymentStartedAt                                       DateTime?
   nextPaymentDate                                        DateTime?
   selectedFreeTrialPlan                                  String?
+  monthlyCredits                                         Int                            @default(0)
+  extraCredits                                           Int                            @default(0)
+  planCanceledAt                                         DateTime?
   seenActivities                                         String[]                       @default([])
   classrooms                                             String[]                       @default([])
   profilePicture                                         String?
@@ -738,8 +741,92 @@ model users {
   SubObjectivesEvaluations                               SubObjectivesEvaluations[]
   Institutions                                           Institutions?                  @relation(fields: [institutionId], references: [id])
   Reports_UpdatedBy                                      Reports[]                      @relation("UpdatedBy")
+  RegisteredCards                                        RegisteredCards[]
+  Subscriptions                                          Subscriptions[]
+  Payments                                               Payments[]
+  CreditTransactions                                     CreditTransactions[]
 
   @@index([email])
   @@index([institutionId])
   @@index([role, institutionId])
+}
+
+model RegisteredCards {
+  id                        String          @id @default(cuid())
+  userId                    String
+  status                    String          @default("pending")
+  tbkUser                   String?
+  oneclickRegistrationEmail String?
+  registrationToken         String?         @unique
+  authorizationCode         String?
+  cardType                  String?
+  cardNumber                String?
+  isActive                  Boolean         @default(false)
+  errorCode                 String?
+  createdAt                 DateTime        @default(now())
+  updatedAt                 DateTime        @updatedAt
+  users                     users           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  Subscriptions             Subscriptions[]
+
+  @@index([userId])
+}
+
+model Subscriptions {
+  id                   String           @id @default(cuid())
+  userId               String
+  status               String           @default("active")
+  registeredCardId     String?
+  amount               Int
+  currency             String           @default("CLP")
+  currentPeriodEnd     DateTime
+  cancelAtPeriodEnd    Boolean          @default(false)
+  retryCount           Int              @default(0)
+  nextRetryAt          DateTime?
+  paymentFailureReason String?
+  cancelledAt          DateTime?
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+  users                users            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  RegisteredCards      RegisteredCards? @relation(fields: [registeredCardId], references: [id])
+  Payments             Payments[]
+
+  @@index([userId])
+  @@index([status, currentPeriodEnd])
+  @@index([status, nextRetryAt])
+}
+
+model Payments {
+  id                String         @id @default(cuid())
+  userId            String
+  subscriptionId    String?
+  type              String
+  buyOrder          String         @unique
+  status            String
+  amount            Int
+  currency          String         @default("CLP")
+  authorizationCode String?
+  responseCode      Int?
+  creditsGranted    Int?
+  raw               Json?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  users             users          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  Subscriptions     Subscriptions? @relation(fields: [subscriptionId], references: [id])
+
+  @@index([userId])
+}
+
+model CreditTransactions {
+  id           String   @id @default(cuid())
+  userId       String
+  amount       Int
+  bucket       String
+  reason       String
+  balanceAfter Int
+  relatedId    String?
+  createdAt    DateTime @default(now())
+  users        users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([relatedId, reason])
+  @@index([userId, createdAt])
 }

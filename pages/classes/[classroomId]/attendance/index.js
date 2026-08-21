@@ -19,7 +19,7 @@ const MOMENT_FORMAT = 'YYYY-MM-DD'
 const START_OF_DAY = moment().startOf('day');
 
 export async function getServerSideProps(context) {
-  const [isAuthorizedValue, returnValue] = await isAuthorized(context, PlansService.plansFromIndividualStandOut);
+  const [isAuthorizedValue, returnValue] = await isAuthorized(context, PlansService.INSTITUTIONAL_ONLY);
   if (!isAuthorizedValue) return returnValue;
 
   const { params: { classroomId }, query: { date } } = context;

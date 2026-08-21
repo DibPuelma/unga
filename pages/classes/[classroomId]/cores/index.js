@@ -26,7 +26,7 @@ import { useRouter } from 'next/router';
 import { serializeForNextProps } from 'src/helpers/businessLogic';
 
 export async function getServerSideProps(context) {
-  const [isAuthorizedValue, returnValue] = await isAuthorized(context, PlansService.plansFromIndividualGrow);
+  const [isAuthorizedValue, returnValue] = await isAuthorized(context, PlansService.INSTITUTIONAL_ONLY);
   if (!isAuthorizedValue) return returnValue;
 
   const session = await getServerSession(context.req, context.res, authOptions);

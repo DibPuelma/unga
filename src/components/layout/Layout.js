@@ -5,6 +5,8 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/router';
 import React, { useContext, useEffect, useMemo, useState } from 'react';
 import AppMenu from 'src/components/layout/AppMenu';
+import AppMenuB2C from 'src/components/layout/AppMenuB2C';
+import { isB2CPlan } from 'src/helpers/plans';
 import { AdvancedReportContext } from 'src/context/AdvancedReportContext';
 import { UserContext } from 'src/context/UserContext';
 import { noClassroom, noInstitution, outsideApp } from 'src/helpers/businessLogic';
@@ -21,8 +23,10 @@ const noLayoutPaths = [
   '/auth/login',
   '/auth/verify',
   '/auth/forgot-password',
-  '/payments/individual-plan-suscription-success',
 ];
+
+// The landing brings its own nav/footer and full-bleed sections.
+const fullBleedPaths = ['/'];
 
 const DRAWER_WIDTH = 300;
 
@@ -120,6 +124,8 @@ export default function Layout({ children }) {
     setOpen(!open);
   };
 
+  if (fullBleedPaths.includes(router.pathname)) return children;
+
   if (loading) return <LinearProgress />;
 
   if (!user || noLayoutPaths.includes(router.pathname)) return (
@@ -139,14 +145,24 @@ export default function Layout({ children }) {
       {(institution || user.role === 'parent' || user.role === 'superAdmin') && (
         <AppBar drawerOpen={open} toggleDrawer={toggleDrawer} drawerWidth={DRAWER_WIDTH} />
       )}
-      <AppMenu
-        institution={institution}
-        user={user}
-        toggleDrawer={toggleDrawer}
-        open={open}
-        width={DRAWER_WIDTH}
-        userHasPlan={userHasPlan}
-      />
+      {user.role === 'teacher' && isB2CPlan(user.plan) ? (
+        <AppMenuB2C
+          institution={institution}
+          user={user}
+          toggleDrawer={toggleDrawer}
+          open={open}
+          width={DRAWER_WIDTH}
+        />
+      ) : (
+        <AppMenu
+          institution={institution}
+          user={user}
+          toggleDrawer={toggleDrawer}
+          open={open}
+          width={DRAWER_WIDTH}
+          userHasPlan={userHasPlan}
+        />
+      )}
       {mdUp ? (
         <Main open={open}>
           <Box
@@ -165,7 +181,7 @@ export default function Layout({ children }) {
       )
       }
       <Stack direction="row" justifyContent="flex-end" position="fixed" bottom={5} right={5}>
-        {institution && userHasPlan && (
+        {institution && userHasPlan && !isB2CPlan(user.plan) && (
           <MissingSteps
             institutionId={institution.id}
             studentsCount={studentsCount}

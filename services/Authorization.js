@@ -202,55 +202,28 @@ const validateSuperAdmin = (session) => {
   return [true, null];
 }
 
+// Onboarding is only for users still missing their institution or classrooms.
 const validateOnboarding = (session) => {
-  const { user: { role, plan, selectedFreeTrialPlan, institution, institutionId, classrooms } } = session;
+  const { user: { role, institution, institutionId, classrooms } } = session;
   const hasInstitution = institution?.id || institutionId;
-  // onBoardingEnded is true if plan exists and is not 'trial', OR if plan is 'trial' but selectedFreeTrialPlan is set
-  // If plan is null/undefined, onboarding hasn't ended yet
-  const onBoardingEnded = plan != null && (plan !== 'trial' || selectedFreeTrialPlan);
-  
-  // Allow access to onboarding if user doesn't have an institution, regardless of plan
-  if (!hasInstitution) {
-    return [true, null];
-  }
-  
-  // For teachers, allow access if:
-  // 1. They don't have classrooms (even if they have an institution), OR
-  // 2. They're still on trial without selectedFreeTrialPlan (need to select plan), OR
-  // 3. They have no plan (null/undefined) - they need to select a plan
-  if (role === 'teacher') {
-    if (!classrooms || classrooms.length === 0) {
-      return [true, null];
-    }
-    // Teacher has classrooms but is still on trial - allow access to select plan
-    if (plan === 'trial' && !selectedFreeTrialPlan) {
-      return [true, null];
-    }
-    // Teacher has classrooms but no plan - allow access to select plan
-    if (plan == null) {
-      return [true, null];
-    }
-  }
-  
-  // Otherwise, only allow if onboarding hasn't ended
-  if (!role || onBoardingEnded) {
-    return [
-      false,
-      {
-        redirect: {
-          permanent: false,
-          destination: '/',
-        }
-      }
-    ]
-  }
 
-  return [true, null];
+  if (!hasInstitution) return [true, null];
+  if (role === 'teacher' && (!classrooms || classrooms.length === 0)) return [true, null];
+
+  return [
+    false,
+    {
+      redirect: {
+        permanent: false,
+        destination: '/',
+      }
+    }
+  ]
 }
 
 const validateParent = (session) => {
-  const { user: { role, plan, selectedFreeTrialPlan } } = session;
-  if (role !== 'parent' || (plan === 'trial' && !selectedFreeTrialPlan)) {
+  const { user: { role } } = session;
+  if (role !== 'parent') {
     return [
       false,
       {

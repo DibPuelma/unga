@@ -1,8 +1,14 @@
-import { Configuration, OpenAIApi } from 'openai';
-const configuration = new Configuration({
-    organization: process.env.OPENAI_ORGANIZATION_ID,
-    apiKey: process.env.OPENAI_API_KEY,
+import OpenAI from 'openai';
+
+export const MODELS = {
+  EXPERIENCE_GENERATION: 'gpt-5-mini',
+};
+
+const openai = new OpenAI({
+  organization: process.env.OPENAI_ORGANIZATION_ID,
+  apiKey: process.env.OPENAI_API_KEY,
+  timeout: 60_000,
+  maxRetries: 2,
 });
-const openai = new OpenAIApi(configuration);
 
 export default openai;

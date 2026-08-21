@@ -1,8 +1,7 @@
 import bcrypt from 'bcryptjs';
 import prisma from './prisma';
 import moment from 'moment-timezone';
-import PlansService from 'services/PlansService';
-import { getReferralOfUser, updateReferral } from './referral';
+import { grantSignupCredits } from './credits';
 import SendAddRoleToUserSlackMessage from 'commands/slack/sendAddRoleToUserSlackMessage';
 import SendNewUserSlackMessage from 'commands/slack/sendNewUserSlackMessage';
 
@@ -94,6 +93,10 @@ export const createUser = async ({
     institutionName: newUser.Institutions?.name || null,
   };
 
+  if (newUser.plan === 'free') {
+    await grantSignupCredits(newUser.id);
+  }
+
   new SendNewUserSlackMessage(result).perform();
 
   return JSON.parse(JSON.stringify(result));
@@ -136,12 +139,6 @@ export const updateUser = async (userId, data) => {
   if (data.institution) {
     updateData.institutionId = data.institution;
     delete updateData.institution;
-  }
-  
-  if (data.freeTrialStarted) {
-    delete updateData.freeTrialStarted;
-    updateData.trialStartedAt = new Date();
-    updateData.trialEndsAt = moment().add(7, 'days').toDate();
   }
   
   if (data.sawActivity) {
@@ -411,76 +408,13 @@ export const getUsersData = async (usersIds) => {
   return users;
 }
 
-export const endExpiredTrialsForUsers = async () => {
-  const users = await prisma.users.findMany({
-    where: {
-      plan: 'trial',
-      selectedFreeTrialPlan: { not: null },
-      trialEndsAt: { lte: new Date() },
-    },
-    include: {
-      Institutions: true,
-    },
-    take: 100000,
-  });
-
-  for (const user of users) {
-    const features = PlansService.getFeatures(user.selectedFreeTrialPlan);
-    
-    // Update referral if exists
-    const referral = await getReferralOfUser(user.id);
-    if (referral) {
-      await updateReferral(referral.id, 'payedPlan');
-    }
-
-    // Update user
-    await prisma.users.update({
-      where: { id: user.id },
-            data: {
-        plan: user.selectedFreeTrialPlan,
-              nextPaymentDate: null,
-              trialEndsAt: null,
-              selectedFreeTrialPlan: null,
-        paymentStartedAt: new Date(),
-      },
-    });
-
-    // Update institution features
-    if (user.Institutions) {
-      await prisma.institutions.update({
-        where: { id: user.Institutions.id },
-        data: { features },
-      });
-    }
-  }
-}
-
-export const getUsersWithTrialsEndingSoon = async () => {
-  const inTwoDaysStart = moment().add(2, 'days').startOf('day').toDate();
-  const inTwoDaysEnd = moment().add(2, 'days').endOf('day').toDate();
-
-  const users = await prisma.users.findMany({
-    where: {
-      plan: 'trial',
-      trialEndsAt: {
-        gte: inTwoDaysStart,
-        lte: inTwoDaysEnd,
-      },
-    },
-    take: 100000,
-  });
-
-  return users;
-}
-
 export const getRegisteredUsersWithDaysAgeEqualTo = async ({ ageInDays, withLevels = false }) => {
   const startOfDay = moment().subtract(ageInDays, 'days').startOf('day').toDate();
   const endOfDay = moment().subtract(ageInDays, 'days').endOf('day').toDate();
 
   const users = await prisma.users.findMany({
     where: {
-      plan: 'trial',
-      trialEndsAt: null,
+      plan: 'free',
       createdAt: {
         gte: startOfDay,
         lte: endOfDay,
@@ -526,24 +460,6 @@ export const getRegisteredUsersWithDaysAgeEqualTo = async ({ ageInDays, withLeve
 
     return JSON.parse(JSON.stringify(usersWithLevels));
   }
-
-  return users;
-}
-
-export const getTrialUsersWithDaysAgeEqualTo = async (days) => {
-  const startOfDay = moment().subtract(days, 'days').startOf('day').toDate();
-  const endOfDay = moment().subtract(days, 'days').endOf('day').toDate();
-
-  const users = await prisma.users.findMany({
-    where: {
-      plan: 'trial',
-      trialStartedAt: {
-        gte: startOfDay,
-        lte: endOfDay,
-      },
-    },
-    take: 100000,
-  });
 
   return users;
 }

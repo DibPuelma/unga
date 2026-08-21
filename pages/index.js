@@ -1,139 +1,41 @@
 import React from 'react';
-import {
-  LinearProgress,
-} from '@mui/material';
+import Head from 'next/head';
 import { authOptions } from 'pages/api/auth/[...nextauth]'
 import { getServerSession } from "next-auth/next"
-import { isAuthorized } from 'services/Authorization';
+import { getRedirectForUser } from 'services/HomeRedirect';
+import LandingPage from 'src/components/landing';
 
 export async function getServerSideProps(context) {
-  const [isAuthorizedValue, returnValue] = await isAuthorized(context);
-  if (!isAuthorizedValue) return returnValue;
+  const session = await getServerSession(context.req, context.res, authOptions);
 
-  const {
-    user: {
-      institution,
-      institutionId,
-      class:
-      _class,
-      role,
-      classrooms,
-      plan,
-      selectedFreeTrialPlan,
-      deletedAt,
-    } } = await getServerSession(context.req, context.res, authOptions);
-
-  if (deletedAt) {
-    return {
-      redirect: {
-        permanent: false,
-        destination: '/not-authorized'
-      }
-    }
+  if (!session?.user) {
+    return { props: { landing: true } };
   }
 
-  if (role === 'superAdmin') {
-    return {
-      redirect: {
-        permanent: false,
-        destination: '/super-admin/pmf-answers',
-      }
-    }
-  }
-
-  if (!role) {
-    return {
-      redirect: {
-        permanent: false,
-        destination: '/users/select-role'
-      }
-    }
-  }
-
-  if (role === 'parent') {
-    if ((plan === 'trial' && !selectedFreeTrialPlan)) {
-      return {
-        redirect: {
-          permanent: false,
-          destination: '/users/onboarding/parents'
-        }
-      }
-    }
-    return {
-      redirect: {
-        permanent: true,
-        destination: '/parents',
-      }
-    }
-  }
-
-  if (role === 'teacher' || role === 'coordinator' || role === 'principal') {
-    const hasInstitution = institution?.id || institutionId;
-    
-    // Principals and coordinators don't require classrooms, only institution
-    if (role === 'principal' || role === 'coordinator') {
-      if (!hasInstitution || (plan === 'trial' && !selectedFreeTrialPlan)) {
-        return {
-          redirect: {
-            permanent: false,
-            destination: `/users/onboarding`
-          }
-        }
-      }
-      // Redirect to institution page or first available classroom
-      return {
-        redirect: {
-          permanent: false,
-          destination: hasInstitution ? `/institutions/${institution?.id || institutionId}` : `/users/onboarding`
-        }
-      }
-    }
-    
-    // Teachers require both institution and classrooms
-    // Only redirect to onboarding if missing institution/classrooms OR if on trial without selected plan
-    // Don't redirect to onboarding just because plan is null/undefined - they can still access their classroom
-    console.log('classrooms', classrooms);
-    console.log('hasInstitution', hasInstitution);
-    console.log('plan', plan);
-    console.log('selectedFreeTrialPlan', selectedFreeTrialPlan);
-    if (!hasInstitution || !classrooms || classrooms.length === 0) {
-      return {
-        redirect: {
-          permanent: false,
-          destination: `/users/onboarding`
-        }
-      }
-    }
-    
-    // If on trial without selected plan, redirect to onboarding to select plan
-    if (plan === 'trial' && !selectedFreeTrialPlan) {
-      return {
-        redirect: {
-          permanent: false,
-          destination: `/users/onboarding`
-        }
-      }
-    }
-
-    // Teacher has institution and classrooms - redirect to classroom
-    return {
-      redirect: {
-        permanent: false,
-        destination: `/classes/${_class?.id || classrooms[0]}`
-      }
-    }
-  }
-
-  return {
-    redirect: {
-      permanent: false,
-      destination: "/404"
-    }
-  }
+  return getRedirectForUser(session.user);
 }
 
 export default function Index() {
-  return <LinearProgress />
+  return (
+    <>
+      <Head>
+        <title>Unga — Crea experiencias de aprendizaje con IA para educación parvularia</title>
+        <meta
+          name="description"
+          content="Unga ayuda a educadoras de párvulo a crear experiencias de aprendizaje con inteligencia artificial, alineadas a las Bases Curriculares de Chile, listas para planificar e imprimir. Parte gratis, sin tarjeta."
+        />
+        <meta property="og:title" content="Unga — Experiencias de aprendizaje con IA" />
+        <meta
+          property="og:description"
+          content="Crea experiencias de aprendizaje alineadas a las Bases Curriculares en segundos. 5 experiencias gratis, sin tarjeta."
+        />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://app.unga.cl/" />
+        <meta property="og:image" content="https://app.unga.cl/logo-orange.png" />
+        <meta name="twitter:card" content="summary" />
+        <link rel="canonical" href="https://app.unga.cl/" />
+      </Head>
+      <LandingPage />
+    </>
+  );
 }
-
-Index.auth = true

@@ -1,46 +1,29 @@
-import { GROW_FEATURES, STAND_OUT_FEATURES, START_FEATURES } from "db/feature";
-import { updateUser, endExpiredTrialsForUsers, getUsersWithTrialsEndingSoon } from "db/user";
-import { sendTrialEndingReminders } from "./email/users";
-import { getReferralOfUser, updateReferral } from "db/referral";
+import {
+  ALL_PLANS,
+  B2C_PLANS,
+  INSTITUTIONAL_ONLY,
+  PLANS_WITH_PLANNING,
+  isB2CPlan,
+  SUBSCRIPTION_PRICE_CLP,
+  MONTHLY_CREDITS,
+  SIGNUP_CREDITS,
+  CREDIT_PACK_SIZE,
+  CREDIT_PACK_PRICE_CLP,
+} from 'src/helpers/plans';
 
 export default class PlansService {
-  static ALL_PLANS = ['trial', 'individualStart', 'individualGrow', 'individualStandOut', 'institutional', 'parentsBase'];
-  static plansFromIndividualGrow = ['trial', 'individualGrow', 'individualStandOut', 'institutional'];
-  static plansFromIndividualStandOut = ['trial', 'individualStandOut', 'institutional'];
-  static individualPlans = ['individualStart', 'individualGrow', 'individualStandOut', 'trial'];
-  static individualPayingPlans = ['individualStart', 'individualGrow', 'individualStandOut'];
-  static async startFreeTrial(user, futurePlan) {
-    const safePlan = this.getSafePlan(futurePlan);
-    const referral = await getReferralOfUser(user.id);
-    if (referral) await updateReferral(referral.id, 'trialPeriod');
-    await updateUser(user.id, { selectedFreeTrialPlan: safePlan, freeTrialStarted: true })
-  }
+  static ALL_PLANS = ALL_PLANS;
+  static B2C_PLANS = B2C_PLANS;
+  static INSTITUTIONAL_ONLY = INSTITUTIONAL_ONLY;
+  static PLANS_WITH_PLANNING = PLANS_WITH_PLANNING;
 
-  static async sendTrialEndingReminders() {
-    const users = await getUsersWithTrialsEndingSoon();
-    sendTrialEndingReminders(users);
-  }
+  static SUBSCRIPTION_PRICE_CLP = SUBSCRIPTION_PRICE_CLP;
+  static MONTHLY_CREDITS = MONTHLY_CREDITS;
+  static SIGNUP_CREDITS = SIGNUP_CREDITS;
+  static CREDIT_PACK_SIZE = CREDIT_PACK_SIZE;
+  static CREDIT_PACK_PRICE_CLP = CREDIT_PACK_PRICE_CLP;
 
-  static getSafePlan(plan) {
-    const allowedPlans = ['individualStart', 'individualGrow', 'individualStandOut', 'parentsBase']
-    if (allowedPlans.includes(plan)) return plan;
-    return 'trial';
-  }
-
-  static getFeatures(plan) {
-    switch (plan) {
-      case 'individualStart':
-        return START_FEATURES;
-      case 'individualGrow':
-        return GROW_FEATURES;
-      case 'individualStandOut':
-        return STAND_OUT_FEATURES;
-      default:
-        return [];
-    }
-  }
-
-  static async endExpiredTrials() {
-    await endExpiredTrialsForUsers();
+  static isB2CPlan(plan) {
+    return isB2CPlan(plan);
   }
 }

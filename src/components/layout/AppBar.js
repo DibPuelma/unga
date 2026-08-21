@@ -14,6 +14,7 @@ import { ArrowBackIos, Menu as MenuIcon } from '@mui/icons-material';
 import { signOut } from 'next-auth/react';
 import { UserContext } from 'src/context/UserContext';
 import { MixpanelContext } from 'services/MixpanelContext';
+import CreditsChip from 'src/components/credits/CreditsChip';
 
 export default function UngaAppBar({ toggleDrawer, drawerWidth, drawerOpen }) {
   const { clearContext, userHasPlan, user: { role } } = useContext(UserContext);
@@ -61,7 +62,7 @@ export default function UngaAppBar({ toggleDrawer, drawerWidth, drawerOpen }) {
     await signOut({ callbackUrl: '/auth/login' });
   };
 
-  if (!userHasPlan) {
+  if (!userHasPlan && role === 'parent') {
     return (
       <AppBar
         open={false}
@@ -138,6 +139,7 @@ export default function UngaAppBar({ toggleDrawer, drawerWidth, drawerOpen }) {
           >
             {title}
           </Typography>
+          <CreditsChip />
           <IconButton
             onClick={toggleDrawer}
             sx={{ display: { xs: 'inline-flex', md: 'none' } }}

@@ -40,7 +40,7 @@ export default async (req, res) => {
     const activitiesIds = _.sampleSize(activities, 3).map((activity) => activity.id);
     const prompt = await generatePromptBasedOnActivitiesIds(activitiesIds);
     const newActivity = await generateNewActivityFromOthers(prompt);
-    const activityData = newActivity.data.choices[0].message.content;
+    const activityData = newActivity.content;
 
     const createActivityPayload = {
       sponsorInstitution: UNGA_EXPERIENCES_INSTITUTION_ID,
@@ -69,9 +69,9 @@ export default async (req, res) => {
 
     await createOpenAIApiCall({
       createdActivityId: createdActivity.id,
-      openAICallData: {
-        ...newActivity.data,
-      },
+      response: newActivity.content,
+      model: newActivity.model,
+      tokensUsed: newActivity.usage?.total_tokens,
       prompt,
       userId: UNGA_EXPERIENCES_USER_ID,
       internalAPICall: true,

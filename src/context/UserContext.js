@@ -1,13 +1,20 @@
 import React, { useState, createContext, useEffect, useMemo } from 'react';
 import axios from 'axios';
 import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/router';
 import { LinearProgress } from '@mui/material';
 import { getClassroomsIdsByLevelId, noInstitution, outsideApp } from 'src/helpers/businessLogic';
 
 export const UserContext = createContext({});
 
+// Public pages must render immediately (SSR HTML for SEO/first paint), never
+// gated behind the session spinner.
+const PUBLIC_PATHS = ['/', '/privacy-policy', '/terms-of-service', '/tutorials'];
+const isPublicPath = (pathname) => PUBLIC_PATHS.includes(pathname) || pathname.startsWith('/auth/');
+
 export function UserContextProvider({ children }) {
   const session = useSession()
+  const router = useRouter();
   const [levelsOfAchievement, setLevelsOfAchievement] = useState();
   const [selectedClassroom, setSelectedClassroom] = useState();
   const [user, setUser] = useState();
@@ -17,7 +24,7 @@ export function UserContextProvider({ children }) {
   const classroomsIdsByLevelId = useMemo(() => (
     getClassroomsIdsByLevelId(user, institution)
   ), [user, institution]);
-  const userHasPlan = useMemo(() => user && (user.plan !== 'trial' || user.trialEndsAt), [user]);
+  const userHasPlan = useMemo(() => user && ['unga', 'institutional', 'parentsBase'].includes(user.plan), [user]);
 
 
   // Effect to handle session and initial loading state
@@ -86,7 +93,7 @@ export function UserContextProvider({ children }) {
   }
 
 
-  if (loading) return <LinearProgress />
+  if (loading && !isPublicPath(router.pathname)) return <LinearProgress />
 
   return (
     <UserContext.Provider value={{

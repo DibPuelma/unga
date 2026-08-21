@@ -11,6 +11,7 @@ import EditActivityButton from "./EditActivityButton";
 import SeeActivityDetailsButton from "./SeeActivityDetailsButton";
 import DeleteActivityButton from "./DeleteActivityButton";
 import ShareActivityToCommunityButton from "./ShareActivityToCommunityButton";
+import DownloadActivityPdfMenuItem from "./DownloadActivityPdfMenuItem";
 import ActivityCreator from "./ActivityCreator";
 
 export default function ActivityCardSmall({ activity, onSelect, forceCheck, onDelete, watchOnly }) {
@@ -146,6 +147,11 @@ export default function ActivityCardSmall({ activity, onSelect, forceCheck, onDe
               onClose={handleActionsClose}
             >
               {canShare && <ShareActivityToCommunityButton activity={activity} onShare={handleShare} />}
+              <DownloadActivityPdfMenuItem
+                institutionId={institutionId}
+                activityId={id}
+                activityName={activity.name}
+              />
               <DuplicateActivityButton
                 activityId={id}
                 publiclyAvailable={publiclyAvailable}

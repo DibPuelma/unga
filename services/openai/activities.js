@@ -1,6 +1,14 @@
 import { getActivitiesByIds } from 'db/activity';
-import openai from './config';
+import openai, { MODELS } from './config';
 import _ from 'lodash';
+
+export class OpenAIGenerationError extends Error {
+  constructor(message, cause) {
+    super(message);
+    this.name = 'OpenAIGenerationError';
+    this.cause = cause;
+  }
+}
 
 export const generatePromptForActivity = ({ ageMin, ageMax, cores, curricularObjectives, objectives, subObjectives }) => {
   return `
@@ -47,6 +55,29 @@ ${activity.description}
   return prompt;
 }
 
+// gpt-5 family: no temperature/top_p/penalties, use max_completion_tokens
+// (reasoning tokens draw from the same budget) and reasoning_effort.
+const chatCompletion = async ({ messages, responseFormat, maxCompletionTokens = 4000 }) => {
+  const completion = await openai.chat.completions.create({
+    model: MODELS.EXPERIENCE_GENERATION,
+    messages,
+    max_completion_tokens: maxCompletionTokens,
+    reasoning_effort: 'low',
+    ...(responseFormat ? { response_format: responseFormat } : {}),
+  });
+
+  const choice = completion.choices?.[0];
+  if (!choice?.message?.content || choice.finish_reason === 'length') {
+    throw new OpenAIGenerationError('Empty or truncated completion', { finishReason: choice?.finish_reason });
+  }
+
+  return {
+    content: choice.message.content,
+    model: completion.model,
+    usage: completion.usage,
+  };
+}
+
 export const transformDescriptionForParents = async (description) => {
   const prompt = `
   Esta es una experiencia de aprendizaje para que una educadora de párvulos la realice en su sala, con muchos niños y niñas. Transfórmala para que un padre o una madre la pueda hacer con su hijo o hija en casa. Expresa todo en una serie de pasos a seguir. Mantén el formato HTML.
@@ -54,39 +85,16 @@ export const transformDescriptionForParents = async (description) => {
   ${description}
   `;
 
-  try {
-    const completion = await openai.createChatCompletion({
-      model: 'gpt-4o',
-      messages: [{ role: 'user', content: prompt }],
-      temperature: 1,
-    });
-
-    return completion;
-  } catch (e) {
-    console.error('--------------------- OpenAi API Error ---------------------');
-    console.error(e);
-    return e;
-  }
+  return chatCompletion({ messages: [{ role: 'user', content: prompt }] });
 }
 
 export const suggestActivities = async (prompt) => {
-  try {
-    const completion = await openai.createChatCompletion({
-      model: 'gpt-4o',
-      messages: [{ role: 'user', content: prompt }],
-      temperature: 1,
-    });
-    return completion;
-  } catch (e) {
-    console.error('--------------------- OpenAi API Error ---------------------');
-    console.error(e);
-    return e;
-  }
+  return chatCompletion({ messages: [{ role: 'user', content: prompt }] });
 }
 
 export const generateNewActivityFromOthers = async (prompt) => {
   const systemPrompt = `
-  Eres una educadora de párvulos de Chile, eres experta en planificar experiencias de aprendizaje para niños y niñas entre 0 y 6 años utilizando los métodos recomendados por el ministerio de educación de Chile. 
+  Eres una educadora de párvulos de Chile, eres experta en planificar experiencias de aprendizaje para niños y niñas entre 0 y 6 años utilizando los métodos recomendados por el ministerio de educación de Chile.
   Tu objetivo es, a partir de algunas experiencias de aprendizaje que te entregan, crear una completamente nueva.
   Esta experiencia nueva debe contener:
   Un nombre.
@@ -102,23 +110,8 @@ export const generateNewActivityFromOthers = async (prompt) => {
   Solamente escribe el nombre, la descripción y los materiales de la experiencia.
   Para el nombre, sé muy creativa, no uses palabras básicas como "Jardín", "Explorar" o "Aventuras", y básate en los nombres de las experiencias que se te entregan.`
 
-  try {
-    const completion = await openai.createChatCompletion({
-      model: 'gpt-4o',
-      messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: prompt }],
-      temperature: 1,
-      max_tokens: 2000,
-      response_format: {
-        type: 'json_object',
-      },
-      top_p: 1,
-      frequency_penalty: 0,
-      presence_penalty: 0,
-    });
-    return completion;
-  } catch (e) {
-    console.error('--------------------- OpenAi API Error ---------------------');
-    console.error(e);
-    return e;
-  }
+  return chatCompletion({
+    messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: prompt }],
+    responseFormat: { type: 'json_object' },
+  });
 }

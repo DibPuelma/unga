@@ -276,3 +276,16 @@ This document lists all environment variables found in the codebase (excluding `
 - GCP credentials switch between dev and prod based on `NODE_ENV === 'production'`
 - Sentry DSN is currently hardcoded in the Sentry config files (not using environment variables)
 - NextAuth.js automatically reads `NEXTAUTH_SECRET` and `NEXTAUTH_URL` even though they're not explicitly referenced in the code
+
+## Transbank (Oneclick Mall)
+
+Pagos de la suscripción B2C ($4.990/mes, cobrada el 1° de cada mes) y packs de créditos extra. La recurrencia es propia (crons `/api/payments/charge-renewals` y `/api/payments/retry-failed`); Transbank solo autoriza cada cobro contra la tarjeta inscrita.
+
+| Variable | Descripción |
+|---|---|
+| `TRANSBANK_ENVIRONMENT` | `integration` (default) o `production`. |
+| `TRANSBANK_ONECLICK_MALL_COMMERCE_CODE` | Código de comercio Mall Oneclick. En integración se usa por defecto `597055555541`. |
+| `TRANSBANK_ONECLICK_TIENDA_COMMERCE_CODE` | Código de comercio Tienda (child). En integración se usa por defecto `597055555542`. |
+| `TRANSBANK_API_KEY` | API key Oneclick. En integración se usa la pública de Transbank. |
+
+Tarjeta de prueba (solo integración): VISA `4051885600446623`, CVV `123`, cualquier fecha futura; RUT `11.111.111-1`, clave `1234`.
