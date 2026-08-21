@@ -134,8 +134,12 @@ export default function Activities({
   useEffect(() => {
     const initialDataFetch = async () => {
       await searchInstitutionActivities({ initial: true, userOnly: true });
-      await searchPublicActivities({ initial: true });
-      await searchCommunityActivities({ initial: true });
+      // B2C only ever shows their own experiences, so skip fetching the
+      // public/community libraries entirely.
+      if (!isB2C) {
+        await searchPublicActivities({ initial: true });
+        await searchCommunityActivities({ initial: true });
+      }
       setLoading(false);
     };
     initialDataFetch();
@@ -230,8 +234,10 @@ export default function Activities({
     setLoading(true);
     setSelectedActivities([]);
     await searchInstitutionActivities();
-    await searchPublicActivities();
-    await searchCommunityActivities();
+    if (!isB2C) {
+      await searchPublicActivities();
+      await searchCommunityActivities();
+    }
     setLoading(false);
   }
 
@@ -402,7 +408,33 @@ export default function Activities({
 
   const toggleFilters = () => setShowFilters((oldValue) => !oldValue);
 
-  const steps = [
+  // B2C: the new experience lives in "Mis experiencias" (just created with AI),
+  // not the public Unga library, which may be empty. Selecting it there avoids
+  // switching to a tab with nothing to target.
+  const steps = isB2C ? [
+    {
+      target: '#library-container',
+      content: 'Esta es tu biblioteca de experiencias, aquí encontrarás las experiencias que vayas creando con IA.',
+      disableBeacon: true,
+    },
+    {
+      target: '#institution-activities-tab',
+      content: 'Aquí se guardan las experiencias que creas con IA.',
+      disableBeacon: true,
+      placement: 'right',
+    },
+    {
+      target: '#first-activity',
+      content: 'Esta es la experiencia que acabas de crear. Selecciónala haciendo click en el recuadro de arriba a la izquierda.',
+      disableBeacon: true,
+      placement: 'bottom',
+    },
+    {
+      target: '#add-activities-button',
+      content: "Una vez que seleccionas las experiencias que quieres, con este botón las agregas al calendario. Haz click en 'Finalizar' para verlo en acción.",
+      disableBeacon: true,
+    },
+  ] : [
     {
       target: '#library-container',
       content: 'Esta es la biblioteca de experiencias, aquí encontrarás todas las experiencias de nuestra biblioteca y las que tú vayas agregando.',
@@ -450,8 +482,11 @@ export default function Activities({
     }
     if (target === '#first-activity') {
       if (selectedActivities.length === 0) {
-        handleSelectActivity(true, filteredPublicActivities[0]);
-        setFirstActivityChecked(true);
+        const firstActivity = isB2C ? filteredActivities[0] : filteredPublicActivities[0];
+        if (firstActivity) {
+          handleSelectActivity(true, firstActivity);
+          setFirstActivityChecked(true);
+        }
       }
     }
     if (status === STATUS.FINISHED && type === 'tour:end') {
@@ -689,26 +724,36 @@ export default function Activities({
             </Grid>
           )}
         </Grid>
-        <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-          <Tabs value={tabValue} onChange={handleTabChange} aria-label="Tabs de configuración" variant="scrollable">
-            <Tab label={isB2C ? 'Mis experiencias' : 'Experiencias del centro'} id="institution-activities-tab" />
-            <Tab
-              label={isB2C ? 'Biblioteca Unga' : 'Experiencias certificadas Unga'}
-              id="unga-activities-tab"
-              sx={{ display: (isB2C || features?.includes('ungaExperiences')) ? 'inline-flex' : 'none' }}
-            />
-            {/* <Tab label="Experiencias de la comunidad" id="community-activities-tab" /> */}
-          </Tabs>
-        </Box>
-        <Box display={tabValue === 0 ? 'block' : 'none'}>
+        {isB2C ? (
+          <Typography variant="h6" id="institution-activities-tab" gutterBottom>
+            Mis experiencias
+          </Typography>
+        ) : (
+          <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+            <Tabs value={tabValue} onChange={handleTabChange} aria-label="Tabs de configuración" variant="scrollable">
+              <Tab label="Experiencias del centro" id="institution-activities-tab" />
+              <Tab
+                label="Experiencias certificadas Unga"
+                id="unga-activities-tab"
+                sx={{ display: features?.includes('ungaExperiences') ? 'inline-flex' : 'none' }}
+              />
+              {/* <Tab label="Experiencias de la comunidad" id="community-activities-tab" /> */}
+            </Tabs>
+          </Box>
+        )}
+        <Box display={isB2C || tabValue === 0 ? 'block' : 'none'}>
           {showActivitiesContent(initialData.institutionActivities, filteredActivities, handleInstitutionShowMore, after)}
         </Box>
-        <Box display={tabValue === 1 ? 'block' : 'none'}>
-          {showActivitiesContent(initialData.publicActivities, filteredPublicActivities, handlePublicShowMore, afterPublic)}
-        </Box>
-        <Box display={tabValue === 2 ? 'block' : 'none'}>
-          {showActivitiesContent(initialData.communityActivities, filteredCommunityActivities, handleCommunityShowMore, afterCommunity)}
-        </Box>
+        {!isB2C && (
+          <>
+            <Box display={tabValue === 1 ? 'block' : 'none'}>
+              {showActivitiesContent(initialData.publicActivities, filteredPublicActivities, handlePublicShowMore, afterPublic)}
+            </Box>
+            <Box display={tabValue === 2 ? 'block' : 'none'}>
+              {showActivitiesContent(initialData.communityActivities, filteredCommunityActivities, handleCommunityShowMore, afterCommunity)}
+            </Box>
+          </>
+        )}
       </Stack>
       {selectedActivities.length > 0 && (
         <Box

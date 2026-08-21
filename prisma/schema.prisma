@@ -714,6 +714,8 @@ model users {
   classrooms                                             String[]                       @default([])
   profilePicture                                         String?
   signature                                              String?
+  finishedTour                                           Boolean                        @default(false)
+  finishedReferralsTour                                  Boolean                        @default(false)
   deletedAt                                              DateTime?
   createdAt                                              DateTime                       @default(now())
   updatedAt                                              DateTime                       @updatedAt

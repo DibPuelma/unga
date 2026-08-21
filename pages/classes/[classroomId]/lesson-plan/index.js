@@ -360,11 +360,6 @@ export default function LessonPlan({
       disableBeacon: true,
     },
     {
-      target: '#suggest-calendar-button',
-      content: 'Puedes usar este botón y te sugeriremos experiencias para la semana completa.',
-      disableBeacon: true,
-    },
-    {
       target: '#tour-date-container',
       content: 'Planifiquemos una experiencia para este día.',
       disableBeacon: true,
@@ -501,9 +496,7 @@ export default function LessonPlan({
           )}
         </Stack>
         <Stack direction={{ xs: 'column-reverse', sm: 'row' }} spacing={2}>
-          {features?.includes('suggestCalendar') && (
-            <SuggestWeekButton />
-          )}
+          {/* "Semana sugerida" hidden for now, keeping SuggestWeekButton/SuggestedWeeklyCalendar for a future re-enable. */}
           {editAccessClassrooms.length > 0 && (
             <>
               {!copying ? (

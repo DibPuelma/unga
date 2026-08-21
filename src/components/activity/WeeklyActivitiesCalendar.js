@@ -14,6 +14,7 @@ import useNoPlanWarning from "src/hooks/useNoPlanWarning";
 import { useRouter } from "next/router";
 import { LoadingButton } from "@mui/lab";
 import { CalendarEventsList } from "./CalendarEventBadge";
+import { isB2CPlan } from "src/helpers/plans";
 
 
 export default function WeeklyActivitiesCalendar({
@@ -60,7 +61,10 @@ export default function WeeklyActivitiesCalendar({
   };
 
   const handleAddActivity = async (indexQueryParams, workDay) => {
-    if (!userHasPlan) {
+    // B2C plans (free/unga) are limited by AI-generation credits, not by how many
+    // planned activities sit on the calendar, so the legacy trial gate below only
+    // applies to institutional teachers without a plan.
+    if (!userHasPlan && !isB2CPlan(user?.plan)) {
       setLoading({ [workDay]: true });
       const activitiesPlannedCountResponse = await axios.get(`/api/users/${user.id}/planned-activities/count`);
       setLoading({});
