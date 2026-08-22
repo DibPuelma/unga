@@ -131,6 +131,15 @@ export default class SubscriptionService {
     return updateSubscription(subscription.id, { cancelAtPeriodEnd: true });
   }
 
+  // Undoes a pending cancellation. Only works before the period actually
+  // ends (i.e. while the subscription is still active/payment_failed) —
+  // once #finalizeCancellation runs, the user must subscribe again.
+  static async resumeSubscription(userId) {
+    const subscription = await getActiveSubscriptionForUser(userId);
+    if (!subscription || !subscription.cancelAtPeriodEnd) return null;
+    return updateSubscription(subscription.id, { cancelAtPeriodEnd: false });
+  }
+
   static async #finalizeCancellation(subscription) {
     await updateSubscription(subscription.id, {
       status: 'cancelled',

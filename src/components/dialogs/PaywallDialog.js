@@ -41,7 +41,8 @@ export default function PaywallDialog({ open, onClose, variant = 'trial' }) {
           ) : (
             <>
               <Typography>
-                Compra <b>{CREDIT_PACK_SIZE} créditos extra por {formatCLP(CREDIT_PACK_PRICE_CLP)}</b> y sigue creando hoy mismo.
+                Compra <b>{CREDIT_PACK_SIZE} créditos extra por {formatCLP(CREDIT_PACK_PRICE_CLP)}</b> y crea{' '}
+                <b>{CREDIT_PACK_SIZE} experiencias más</b> hoy mismo.
               </Typography>
               <Typography variant="body2" color="text.secondary">
                 Tus {MONTHLY_CREDITS} créditos mensuales se renuevan el 1° del próximo mes. Los créditos extra no vencen.
