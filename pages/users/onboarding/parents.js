@@ -1,7 +1,5 @@
 import { Button, Chip, Container, Paper, Stack, Typography } from "@mui/material";
-import { getServerSession } from "next-auth";
 import { useRouter } from "next/router";
-import { authOptions } from "pages/api/auth/[...nextauth]";
 import { useState } from "react";
 import { isAuthorized } from "services/Authorization";
 import ParentsTranslationService from "services/translation/parents";
@@ -9,9 +7,9 @@ import ActivitiesLibraryModal from "src/components/activity/LibraryModal";
 import { serializeForNextProps } from "src/helpers/businessLogic";
 
 export async function getServerSideProps(context) {
-  const [isAuthorizedValue, returnValue] = await isAuthorized(context);
+  const [isAuthorizedValue, returnValue, session] = await isAuthorized(context);
   if (!isAuthorizedValue) return returnValue;
-  const { user } = await getServerSession(context.req, context.res, authOptions);
+  const { user } = session;
 
   return {
     props: serializeForNextProps({

@@ -1,6 +1,4 @@
 import React, { useEffect, useState, useContext } from 'react';
-import { authOptions } from 'pages/api/auth/[...nextauth]'
-import { getServerSession } from "next-auth/next"
 import {
   Typography,
   Box,
@@ -30,11 +28,9 @@ import moment from 'moment-timezone';
 import { serializeForNextProps } from 'src/helpers/businessLogic';
 
 export async function getServerSideProps(context) {
-  const [isAuthorizedValue, returnValue] = await isAuthorized(context, PlansService.INSTITUTIONAL_ONLY);
+  const [isAuthorizedValue, returnValue, session] = await isAuthorized(context, PlansService.INSTITUTIONAL_ONLY);
   if (!isAuthorizedValue) return returnValue;
 
-
-  const session = await getServerSession(context.req, context.res, authOptions);
   const { user: { institution } } = session;
   const institutionId = institution.id;
   const { params: { classroomId, coreId }, query: { startDate, endDate } } = context;

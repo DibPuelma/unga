@@ -10,8 +10,6 @@ import {
 import { getClassroom } from 'db/class';
 import { getCoresWithLevelsOfAchievementByObjectiveAndSubObjective } from 'db/core';
 import { getInstitution } from 'db/institution';
-import { authOptions } from 'pages/api/auth/[...nextauth]'
-import { getServerSession } from "next-auth/next"
 import Head from 'next/head';
 import { useEffect, useState } from 'react';
 import AdvancementCalculationService from 'services/AdvancementCalculationService';
@@ -26,10 +24,9 @@ import { useRouter } from 'next/router';
 import { serializeForNextProps } from 'src/helpers/businessLogic';
 
 export async function getServerSideProps(context) {
-  const [isAuthorizedValue, returnValue] = await isAuthorized(context, PlansService.INSTITUTIONAL_ONLY);
+  const [isAuthorizedValue, returnValue, session] = await isAuthorized(context, PlansService.INSTITUTIONAL_ONLY);
   if (!isAuthorizedValue) return returnValue;
 
-  const session = await getServerSession(context.req, context.res, authOptions);
   const {
     user: {
       institution: { id: institutionId },

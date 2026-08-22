@@ -2,9 +2,7 @@ import { Box, Button, Stack, Typography } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import { getUserReferrals, statusToSpanish } from "db/referral";
 import moment from "moment-timezone";
-import { getServerSession } from "next-auth";
 import Head from "next/head";
-import { authOptions } from "pages/api/auth/[...nextauth]";
 import { useContext, useMemo, useState } from "react";
 import { isAuthorized } from "services/Authorization";
 import Link from "src/Link";
@@ -12,10 +10,10 @@ import { UserContext } from "src/context/UserContext";
 import { serializeForNextProps } from "src/helpers/businessLogic";
 
 export async function getServerSideProps(context) {
-  const [isAuthorizedValue, returnValue] = await isAuthorized(context);
+  const [isAuthorizedValue, returnValue, session] = await isAuthorized(context);
   if (!isAuthorizedValue) return returnValue;
 
-  const { user } = await getServerSession(context.req, context.res, authOptions);
+  const { user } = session;
   const referrals = await getUserReferrals(user.id)
 
   return {

@@ -3,8 +3,6 @@ import { getClassroom } from 'db/class';
 import { getInstitution } from 'db/institution';
 import { getPlannedActivitiesByClassroomAndDates } from 'db/plannedActivity';
 import moment from 'moment-timezone';
-import { authOptions } from 'pages/api/auth/[...nextauth]'
-import { getServerSession } from "next-auth/next"
 import Head from 'next/head';
 import Image from 'next/image';
 import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
@@ -18,13 +16,12 @@ import { serializeForNextProps } from 'src/helpers/businessLogic';
 
 
 export async function getServerSideProps(context) {
-  const [isAuthorizedValue, returnValue] = await isAuthorized(context);
+  const [isAuthorizedValue, returnValue, session] = await isAuthorized(context);
   if (!isAuthorizedValue) return returnValue;
 
   const { params: { classroomId }, query: { startDate, endDate } } = context;
   const startOfWeek = moment(startDate).startOf('day').format('YYYY-MM-DD');
   const endOfWeek = moment(endDate).endOf('day').format('YYYY-MM-DD');
-  const session = await getServerSession(context.req, context.res, authOptions);
   const {
     user: {
       institution: { id: institutionId },

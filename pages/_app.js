@@ -52,7 +52,7 @@ export default function MyApp(props) {
   }, []);
 
   return (
-    <SessionProvider session={session}>
+    <SessionProvider session={session} refetchOnWindowFocus={false}>
       <CacheProvider value={emotionCache}>
         <UngaThemeProvider>
         <Head>

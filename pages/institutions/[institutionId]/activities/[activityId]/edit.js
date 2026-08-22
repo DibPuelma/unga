@@ -15,8 +15,6 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import { authOptions } from 'pages/api/auth/[...nextauth]'
-import { getServerSession } from "next-auth/next"
 import { useRouter } from 'next/router';
 import dynamic from 'next/dynamic';
 import MaterialsInput from 'src/components/activity/MaterialsInput';
@@ -66,10 +64,9 @@ const AUTOSAVE_INTERVAL_IN_SECONDS = 5;
 const TIMER_INTERVAL = 1000;
 
 export async function getServerSideProps(context) {
-  const [isAuthorizedValue, returnValue] = await isAuthorized(context);
+  const [isAuthorizedValue, returnValue, session] = await isAuthorized(context);
   if (!isAuthorizedValue) return returnValue;
 
-  const session = await getServerSession(context.req, context.res, authOptions);
   const { user: { institution: { id: institutionId } } } = session;
   const { query: { activityId } } = context;
 

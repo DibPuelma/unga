@@ -751,6 +751,7 @@ model users {
   @@index([email])
   @@index([institutionId])
   @@index([role, institutionId])
+  @@index([classrooms], type: Gin)
 }
 
 model RegisteredCards {

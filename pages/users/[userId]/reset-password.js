@@ -3,15 +3,12 @@ import { Alert, Container, Snackbar, TextField, Typography } from '@mui/material
 import { LoadingButton } from '@mui/lab';
 import axios from 'axios';
 import { isAuthorized } from 'services/Authorization';
-import { authOptions } from 'pages/api/auth/[...nextauth]'
-import { getServerSession } from "next-auth/next"
 import { MixpanelContext } from 'services/MixpanelContext';
 
 export async function getServerSideProps(context) {
-  const [isAuthorizedValue, returnValue] = await isAuthorized(context);
+  const [isAuthorizedValue, returnValue, session] = await isAuthorized(context);
   if (!isAuthorizedValue) return returnValue;
 
-  const session = await getServerSession(context.req, context.res, authOptions);
   const { user: { email } } = session;
 
   return {

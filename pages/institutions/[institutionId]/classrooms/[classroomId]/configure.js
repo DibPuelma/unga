@@ -14,15 +14,13 @@ import moment from "moment-timezone";
 import { LoadingButton } from "@mui/lab";
 import { getActiveInstitutionTeachersAndCoordinators, getClassroomTeachers } from "db/user";
 import ConfigureClassroomTeachers from "src/components/classroom/configure/ConfigureClassroomTeachers";
-import { authOptions } from 'pages/api/auth/[...nextauth]'
-import { getServerSession } from "next-auth/next"
 import { serializeForNextProps } from "src/helpers/businessLogic";
 
 export async function getServerSideProps(context) {
-  const [isAuthorizedValue, returnValue] = await isAuthorized(context);
+  const [isAuthorizedValue, returnValue, session] = await isAuthorized(context);
   if (!isAuthorizedValue) return returnValue;
 
-  const { user: { role } } = await getServerSession(context.req, context.res, authOptions);
+  const { user: { role } } = session;
   const { params: { classroomId, institutionId }, query: { tab } } = context;
 
   const classroom = await getClassroom(classroomId);

@@ -1,17 +1,15 @@
 import { Grid, Typography } from "@mui/material";
 import { getStudent } from "db/student";
-import { authOptions } from 'pages/api/auth/[...nextauth]'
-import { getServerSession } from "next-auth/next"
 import Head from "next/head";
 import { isAuthorized } from "services/Authorization";
 import HistoricReportCard from "src/components/report/HistoricReportCard";
 import { getDownloadedReportsByStudent } from "db/downloadedStudentsReport";
 
 export async function getServerSideProps(context) {
-  const [isAuthorizedValue, returnValue] = await isAuthorized(context);
+  const [isAuthorizedValue, returnValue, session] = await isAuthorized(context);
   if (!isAuthorizedValue) return returnValue;
 
-  const { user } = await getServerSession(context.req, context.res, authOptions);
+  const { user } = session;
   const { params: { studentId } } = context;
   const allReports = await getDownloadedReportsByStudent(studentId);
   const student = await getStudent(studentId);

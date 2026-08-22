@@ -6,8 +6,6 @@ import {
   Stack,
   Typography,
 } from '@mui/material';
-import { authOptions } from 'pages/api/auth/[...nextauth]'
-import { getServerSession } from "next-auth/next"
 import { getEvaluationsByInstitution } from '/db/evaluation';
 import { getCores, getAllCoresWithAdvancement } from '/db/core';
 import { getLevelsOfAchievement } from '/db/levelsOfAchievement';
@@ -33,7 +31,7 @@ export async function getServerSideProps(context) {
       }
     };
   }
-  const [isAuthorizedValue, returnValue] = authorizationResult;
+  const [isAuthorizedValue, returnValue, session] = authorizationResult;
   if (!isAuthorizedValue) {
     return returnValue || {
       redirect: {
@@ -44,8 +42,7 @@ export async function getServerSideProps(context) {
   }
 
   const { params: { institutionId } } = context;
-  const session = await getServerSession(context.req, context.res, authOptions);
-  
+
   const classrooms = await getClassesByInstitution(institutionId);
   const institution = await getInstitution(institutionId);
 

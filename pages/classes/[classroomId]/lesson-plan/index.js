@@ -5,8 +5,6 @@ import axios from 'axios';
 import { getClassroom } from 'db/class';
 import { getPlannedActivitiesByClassroomAndDates } from 'db/plannedActivity';
 import moment from 'moment-timezone';
-import { authOptions } from 'pages/api/auth/[...nextauth]'
-import { getServerSession } from "next-auth/next"
 import Head from 'next/head';
 import Link from 'src/Link';
 import { isAuthorized } from 'services/Authorization';
@@ -32,10 +30,9 @@ import usePlanUpgradeWarning from 'src/hooks/usePlanUpgradeWarning';
 import { serializeForNextProps } from 'src/helpers/businessLogic';
 
 export async function getServerSideProps(context) {
-  const [isAuthorizedValue, returnValue] = await isAuthorized(context, PlansService.PLANS_WITH_PLANNING);
+  const [isAuthorizedValue, returnValue, session] = await isAuthorized(context, PlansService.PLANS_WITH_PLANNING);
   if (!isAuthorizedValue) return returnValue;
 
-  const session = await getServerSession(context.req, context.res, authOptions);
   const { user, user: { institution: { id: institutionId } } } = session;
   const { params: { classroomId }, query: { startDate } } = context;
 

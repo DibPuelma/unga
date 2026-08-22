@@ -1,6 +1,4 @@
 import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { authOptions } from 'pages/api/auth/[...nextauth]'
-import { getServerSession } from "next-auth/next"
 import { Alert, Box, FormControlLabel, Grid, Snackbar, Stack, Switch, Tab, Tabs, TextField, Typography } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
 import { Download, Home, Language, Mail, Phone, SaveOutlined, WhatsApp } from '@mui/icons-material';
@@ -39,10 +37,9 @@ import PlansService from 'services/PlansService';
 import { serializeForNextProps } from 'src/helpers/businessLogic';
 
 export async function getServerSideProps(context) {
-  const [isAuthorizedValue, returnValue] = await isAuthorized(context, PlansService.INSTITUTIONAL_ONLY);
+  const [isAuthorizedValue, returnValue, session] = await isAuthorized(context, PlansService.INSTITUTIONAL_ONLY);
   if (!isAuthorizedValue) return returnValue;
 
-  const session = await getServerSession(context.req, context.res, authOptions);
   const {
     user,
     user: {
