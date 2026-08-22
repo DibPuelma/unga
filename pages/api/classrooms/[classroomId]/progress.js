@@ -1,6 +1,6 @@
 import { getClassroomProgress, getPlannedActivitiesByObjective, getEvaluatedActivitiesByObjective, getPlannedActivitiesBySubObjective, getEvaluatedActivitiesBySubObjective } from 'db/activityProgress';
 import { getYearToDateRange } from 'src/helpers/workdays';
-import { getInstitutionWithStructure } from 'db/institution';
+import { getInstitutionCores } from 'db/institution';
 import { getClassroom } from 'db/class';
 import { getObjectivesByCoresClassroom } from 'db/objective';
 import prisma from 'db/prisma';
@@ -117,9 +117,8 @@ export default async (req, res) => {
       return res.status(404).json({ error: 'Classroom not found' });
     }
     
-    const institution = await getInstitutionWithStructure(classroom.institutionId);
-    const institutionCores = institution?.cores || [];
-    
+    const institutionCores = await getInstitutionCores(classroom.institutionId) || [];
+
     const progress = await getClassroomProgress(classroomId, institutionCores);
     return res.status(200).json(progress);
   } catch (error) {

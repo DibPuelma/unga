@@ -21,14 +21,11 @@ import 'react-quill/dist/quill.snow.css';
 import { UserContext } from 'src/context/UserContext';
 import { LoadingButton } from '@mui/lab';
 import { useRouter } from 'next/router';
-import { authOptions } from 'pages/api/auth/[...nextauth]';
-import { getServerSession } from 'next-auth';
 import { serializeForNextProps } from 'src/helpers/businessLogic';
 
 export async function getServerSideProps(context) {
-  const [isAuthorizedValue, returnValue] = await isAuthorized(context);
+  const [isAuthorizedValue, returnValue, session] = await isAuthorized(context);
   if (!isAuthorizedValue) return returnValue;
-  const session = await getServerSession(context.req, context.res, authOptions);
   const { user: { institution: { id: institutionId } } } = session;
 
   const publicActivities = await searchActivities({ publiclyAvailable: true, pageSize: 1000 });

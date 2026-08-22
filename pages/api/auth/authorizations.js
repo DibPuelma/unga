@@ -1,4 +1,4 @@
-import { getClassroom } from "db/class";
+import prisma from "db/prisma";
 import { getInstitution } from "db/institution";
 
 export const classroomAuthorization = async (user, classroomId) => {
@@ -10,9 +10,12 @@ export const classroomAuthorization = async (user, classroomId) => {
     return teacherAuthorized;
   }
   if (role === 'principal' || role === 'coordinator') {
-    const fullClass = await getClassroom(classroomId);
-    const classInstitutionId = fullClass.institutionId;
-    const authorized = classInstitutionId === userInstitutionIdValue;
+    const classroom = await prisma.classes.findUnique({
+      where: { id: classroomId },
+      select: { institutionId: true },
+    });
+    if (!classroom) return false;
+    const authorized = classroom.institutionId === userInstitutionIdValue;
     return authorized;
   }
   return false;

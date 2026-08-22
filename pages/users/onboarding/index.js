@@ -3,18 +3,16 @@ import { Chip, Stack, Typography } from "@mui/material";
 import axios from "axios";
 import { getNonHeterogeneousLevels } from "db/level";
 import { useRouter } from "next/router";
-import { authOptions } from 'pages/api/auth/[...nextauth]'
-import { getServerSession } from "next-auth/next"
 import { useContext, useState } from "react";
 import { isAuthorized } from "services/Authorization";
 import { UserContext } from "src/context/UserContext";
 import { serializeForNextProps } from "src/helpers/businessLogic";
 
 export async function getServerSideProps(context) {
-  const [isAuthorizedValue, returnValue] = await isAuthorized(context);
+  const [isAuthorizedValue, returnValue, session] = await isAuthorized(context);
   if (!isAuthorizedValue) return returnValue;
   const levels = await getNonHeterogeneousLevels();
-  const { user } = await getServerSession(context.req, context.res, authOptions);
+  const { user } = session;
 
   // Already provisioned: onboarding is done, go home.
   if ((user.institution?.id || user.institutionId) && user.classrooms?.length > 0) {

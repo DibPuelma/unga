@@ -8,8 +8,6 @@ import {
   Tabs,
   useMediaQuery,
 } from '@mui/material';
-import { authOptions } from 'pages/api/auth/[...nextauth]'
-import { getServerSession } from "next-auth/next"
 
 import { MenuBook, AutoGraph, VisibilityOutlined, EventAvailable } from '@mui/icons-material';
 
@@ -32,10 +30,8 @@ import PlansService from 'services/PlansService';
 import { serializeForNextProps } from 'src/helpers/businessLogic';
 
 export async function getServerSideProps(context) {
-  const [isAuthorizedValue, returnValue] = await isAuthorized(context, PlansService.INSTITUTIONAL_ONLY);
+  const [isAuthorizedValue, returnValue, session] = await isAuthorized(context, PlansService.INSTITUTIONAL_ONLY);
   if (!isAuthorizedValue) return returnValue;
-
-  const session = await getServerSession(context.req, context.res, authOptions);
 
   const { params: { studentId } } = context;
   const { user: { institution: { id: institutionId } } } = session;

@@ -4,8 +4,6 @@ import axios from "axios";
 import moment from 'moment';
 import { getInstitutionCoresWithObjectives } from "db/core";
 import { getLevelForClassroom, getNonHeterogeneousLevels, HETEROGENEOUS_TO_NON_HETEROGENEUS } from "db/level";
-import { authOptions } from 'pages/api/auth/[...nextauth]'
-import { getServerSession } from "next-auth/next"
 import { useRouter } from "next/router";
 import { useContext, useEffect, useMemo, useState } from "react";
 import { isAuthorized } from "services/Authorization";
@@ -28,10 +26,9 @@ const nameMapper = ((item) => item.name)
 import { serializeForNextProps } from "src/helpers/businessLogic";
 
 export async function getServerSideProps(context) {
-  const [isAuthorizedValue, returnValue] = await isAuthorized(context);
+  const [isAuthorizedValue, returnValue, session] = await isAuthorized(context);
   if (!isAuthorizedValue) return returnValue;
 
-  const session = await getServerSession(context.req, context.res, authOptions);
   const { user: { institution } } = session;
   const institutionId = institution.id;
   const { query: { classroomId } } = context;

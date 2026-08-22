@@ -1,7 +1,5 @@
 import React, { useMemo, useState, useContext, useRef, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import { authOptions } from 'pages/api/auth/[...nextauth]'
-import { getServerSession } from "next-auth/next"
 import { LoadingButton } from '@mui/lab'
 import moment from 'moment-timezone';
 import axios from 'axios';
@@ -37,11 +35,8 @@ import { serializeForNextProps } from 'src/helpers/businessLogic';
 const AUTOSAVE_INTERVAL = 5000
 
 export async function getServerSideProps(context) {
-  const [isAuthorizedValue, returnValue] = await isAuthorized(context);
+  const [isAuthorizedValue, returnValue, session] = await isAuthorized(context);
   if (!isAuthorizedValue) return returnValue;
-
-  const session = await getServerSession(context.req, context.res, authOptions);
-
 
   const { user: { institution: { id: institutionId } } } = session;
   const { params: { classroomId, observationId } } = context;

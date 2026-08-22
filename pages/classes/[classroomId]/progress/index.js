@@ -1,9 +1,7 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { Box, Container, Typography, Stack } from '@mui/material';
 import { getClassroom } from 'db/class';
-import { getInstitutionWithStructure } from 'db/institution';
-import { authOptions } from 'pages/api/auth/[...nextauth]';
-import { getServerSession } from 'next-auth/next';
+import { getInstitutionCores } from 'db/institution';
 import Head from 'next/head';
 import { isAuthorized } from 'services/Authorization';
 import PlansService from 'services/PlansService';
@@ -16,10 +14,9 @@ import ProgressSummary from 'src/components/progress/ProgressSummary';
 import CoreProgressList from 'src/components/progress/CoreProgressList';
 
 export async function getServerSideProps(context) {
-  const [isAuthorizedValue, returnValue] = await isAuthorized(context, PlansService.INSTITUTIONAL_ONLY);
+  const [isAuthorizedValue, returnValue, session] = await isAuthorized(context, PlansService.INSTITUTIONAL_ONLY);
   if (!isAuthorizedValue) return returnValue;
 
-  const session = await getServerSession(context.req, context.res, authOptions);
   const { user, user: { institution: { id: institutionId } } } = session;
   const { params: { classroomId } } = context;
 
@@ -30,11 +27,11 @@ export async function getServerSideProps(context) {
     };
   }
 
-  const institution = await getInstitutionWithStructure(institutionId);
+  const cores = await getInstitutionCores(institutionId) || [];
 
   let progress = null;
   try {
-    progress = await getClassroomProgress(classroomId, institution.cores || []);
+    progress = await getClassroomProgress(classroomId, cores);
   } catch (error) {
     console.error('Error fetching progress:', error);
     // Return default structure on error
@@ -45,7 +42,7 @@ export async function getServerSideProps(context) {
         expectedToDate: 0,
         expectedFullYear: 0,
       },
-      cores: (institution.cores || []).map(core => ({
+      cores: cores.map(core => ({
         coreId: core.id,
         coreName: core.name,
         position: core.position,
@@ -58,14 +55,14 @@ export async function getServerSideProps(context) {
   return {
     props: serializeForNextProps({
       user,
-      institution,
+      cores,
       classroom,
       progress,
     }),
   };
 }
 
-export default function Progress({ user: propsUser, institution, classroom, progress: propsProgress }) {
+export default function Progress({ user: propsUser, cores, classroom, progress: propsProgress }) {
   const { setSelectedClassroom } = useContext(UserContext);
   const [progress, setProgress] = useState(propsProgress);
   const [loading, setLoading] = useState(false);
@@ -105,8 +102,8 @@ export default function Progress({ user: propsUser, institution, classroom, prog
   };
 
   // If cores array is empty but institution has cores, populate with zeros
-  if (displayProgress.cores.length === 0 && institution?.cores && institution.cores.length > 0) {
-    displayProgress.cores = institution.cores.map(core => ({
+  if (displayProgress.cores.length === 0 && cores && cores.length > 0) {
+    displayProgress.cores = cores.map(core => ({
       coreId: core.id,
       coreName: core.name,
       position: core.position,

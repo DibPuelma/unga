@@ -6,18 +6,16 @@ import { getObjectivesByInstitution } from "db/objective";
 import { getAllStudentsForInstitution } from "db/student";
 import { getSubObjectivesForInstitution } from "db/subObjectives";
 import { getInstitutionCoordinators, getInstitutionPrincipals, getInstitutionTeachers } from "db/user";
-import { authOptions } from 'pages/api/auth/[...nextauth]'
-import { getServerSession } from "next-auth/next"
 import { isAuthorized } from "services/Authorization";
 import ConfigureInstitutionContainer from "src/components/institution/configuration/Container";
 import { InstitutionConfigurationContextProvider } from "src/context/InstitutionConfigurationContext";
 import { serializeForNextProps } from "src/helpers/businessLogic";
 
 export async function getServerSideProps(context) {
-  const [isAuthorizedValue, returnValue] = await isAuthorized(context);
+  const [isAuthorizedValue, returnValue, session] = await isAuthorized(context);
   if (!isAuthorizedValue) return returnValue;
 
-  const { user } = await getServerSession(context.req, context.res, authOptions);
+  const { user } = session;
   const { params: { institutionId } } = context;
   const institutionWithConfigs = await getInstitutionWithConfiguration(institutionId);
   const teachers = await getInstitutionTeachers(institutionId);

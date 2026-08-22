@@ -21,8 +21,6 @@ import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import EditIcon from '@mui/icons-material/Edit';
 import LibraryBooksIcon from '@mui/icons-material/LibraryBooks';
 import ReplayIcon from '@mui/icons-material/Replay';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from 'pages/api/auth/[...nextauth]';
 import { isAuthorized } from 'services/Authorization';
 import { getInstitutionLevels } from 'db/level';
 import { serializeForNextProps } from 'src/helpers/businessLogic';
@@ -34,10 +32,10 @@ import usePaywall from 'src/hooks/usePaywall';
 import useCredits from 'src/hooks/useCredits';
 
 export async function getServerSideProps(context) {
-  const [isAuthorizedValue, returnValue] = await isAuthorized(context);
+  const [isAuthorizedValue, returnValue, session] = await isAuthorized(context);
   if (!isAuthorizedValue) return returnValue;
 
-  const { user } = await getServerSession(context.req, context.res, authOptions);
+  const { user } = session;
   const { institutionId } = context.params;
   const levels = await getInstitutionLevels(institutionId);
 

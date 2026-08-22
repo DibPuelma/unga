@@ -1,6 +1,4 @@
 import { isAuthorized } from "services/Authorization";
-import { authOptions } from 'pages/api/auth/[...nextauth]'
-import { getServerSession } from "next-auth/next"
 import { Alert, Button, Container, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Paper, Snackbar, Stack, TextField, Typography } from "@mui/material";
 import { DeleteOutlined, DriveFileRenameOutline, EditOutlined } from "@mui/icons-material";
 import { useContext, useState } from "react";
@@ -14,10 +12,10 @@ import { UserContext } from "src/context/UserContext";
 import { serializeForNextProps } from "src/helpers/businessLogic";
 
 export async function getServerSideProps(context) {
-  const [isAuthorizedValue, returnValue] = await isAuthorized(context);
+  const [isAuthorizedValue, returnValue, session] = await isAuthorized(context);
   if (!isAuthorizedValue) return returnValue;
 
-  const { user } = await getServerSession(context.req, context.res, authOptions);
+  const { user } = session;
 
   return {
     props: serializeForNextProps({

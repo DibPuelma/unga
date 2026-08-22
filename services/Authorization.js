@@ -239,8 +239,15 @@ const validateParent = (session) => {
 }
 
 
+// Fetches the session once and returns it alongside the authorization result
+// so callers don't need to call getServerSession(...) again themselves.
 export const isAuthorized = async (context, authorizedPlans = PlansService.ALL_PLANS) => {
   const session = await getServerSession(context.req, context.res, authOptions);
+  const [ok, redirect] = await resolveAuthorization(context, session, authorizedPlans);
+  return [ok, redirect, session];
+};
+
+const resolveAuthorization = async (context, session, authorizedPlans) => {
   const { params, resolvedUrl, query } = context;
   const urlWithoutParams = resolvedUrl.split('?')[0];
   const lastUrlText = resolvedUrl.split('/').pop().split('?')[0];

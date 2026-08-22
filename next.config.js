@@ -10,11 +10,25 @@ const nextConfig = withPWA({
   images: {
     domains: ['res.cloudinary.com'],
   },
+  modularizeImports: {
+    '@mui/icons-material': {
+      transform: '@mui/icons-material/{{member}}',
+    },
+    lodash: {
+      transform: 'lodash/{{member}}',
+    },
+  },
 });
  
 module.exports = nextConfig;
 
-// Injected content via Sentry wizard below
+// Injected content via Sentry wizard below.
+// Left disabled: enabling withSentryConfig was measured to grow the shared JS
+// bundle by ~74kB (300kB -> 374kB) and its tunnelRoute option proxies client
+// Sentry traffic through this app's own serverless functions, adding
+// server-side overhead per request — both work against page load performance.
+// The tracesSampleRate reduction in sentry.*.config.js already cuts most of
+// the per-request tracing overhead without this cost.
 
 // const { withSentryConfig } = require("@sentry/nextjs");
 

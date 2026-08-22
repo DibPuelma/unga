@@ -1,7 +1,7 @@
 import prisma from './prisma';
 import { getWorkdaysCount, getYearToDateRange, getFullYearRange } from 'src/helpers/workdays';
 import { getClassroom } from './class';
-import { getInstitutionWithStructure } from './institution';
+import { getInstitutionCores } from './institution';
 
 /**
  * Get expected activities count based on workdays and dailyActivitiesPerDay configuration
@@ -477,8 +477,7 @@ export async function getClassroomProgress(classroomId, institutionCores = []) {
   // If no cores provided, fetch them from the institution
   let coresToUse = institutionCores;
   if (!coresToUse || coresToUse.length === 0) {
-    const institution = await getInstitutionWithStructure(classroom.institutionId);
-    coresToUse = institution?.cores || [];
+    coresToUse = await getInstitutionCores(classroom.institutionId) || [];
   }
 
   const { startDate: yearStartDate, endDate: todayDate } = getYearToDateRange();

@@ -10,6 +10,12 @@ import { login } from "db/auth";
 import { checkEmailExists, getUserData } from "db/user";
 import { sendEmail } from "services/email/resend";
 
+// How long to trust the user data embedded in the JWT before re-fetching from
+// the DB. Session strategy is 'jwt', so without this the session callback was
+// re-querying the DB on every single request (SSR page load, API call, and
+// client focus refetch) instead of only on sign-in.
+const SESSION_USER_TTL_MS = 5 * 60 * 1000;
+
 export const authOptions = {
   // https://next-auth.js.org/providers/overview
   providers: [
@@ -70,22 +76,32 @@ export const authOptions = {
     signIn: '/auth/login',
   },
   callbacks: {
-    async session({ session, user, token }) {
-      let updatedUser = null;
-      if (user) {
-        const id = user.id
-        updatedUser = await getUserData(id)
-        session.user = { ...updatedUser, id };
-      }
-      else if (token.user) {
-        const id = token.user.id
-        updatedUser = await getUserData(id)
-        session.user = { ...updatedUser, id };
+    async session({ session, token }) {
+      if (token.user) {
+        session.user = { ...token.user, id: token.user.id };
       }
       return session;
     },
     async jwt({ token, user }) {
-      if (user) token.user = user;
+      const now = Date.now();
+      const stale = !token.user || !token.fetchedAt || (now - token.fetchedAt) > SESSION_USER_TTL_MS;
+
+      if (user) {
+        // Sign-in. `user` from CredentialsProvider.authorize() already has the
+        // full getUserData() shape, but the EmailProvider/PrismaAdapter path
+        // only returns bare user-table columns (no mapped `institution`
+        // relation), so always re-fetch here to keep the shape consistent.
+        // This runs once per login, not per request, so the extra query is cheap.
+        const freshUser = await getUserData(user.id);
+        token.user = { ...(freshUser || user), id: user.id };
+        token.fetchedAt = now;
+      } else if (stale && token.user?.id) {
+        const freshUser = await getUserData(token.user.id);
+        if (freshUser) {
+          token.user = { ...freshUser, id: token.user.id };
+          token.fetchedAt = now;
+        }
+      }
 
       return token;
     }

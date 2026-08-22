@@ -120,6 +120,20 @@ export const getInstitutionWithStructure = async (institutionId) => {
   return JSON.parse(JSON.stringify(result));
 }
 
+// Lean variant of getInstitutionWithStructure for callers that only need the
+// institution's cores (e.g. progress calculations), avoiding the unbounded
+// nested Classes -> Students fetch.
+export const getInstitutionCores = async (institutionId) => {
+  const institution = await prisma.institutions.findUnique({
+    where: { id: institutionId },
+    select: { Cores: true },
+  });
+
+  if (!institution) return null;
+
+  return JSON.parse(JSON.stringify(institution.Cores));
+}
+
 export const createInstitution = async ({
   name,
   address,

@@ -37,17 +37,24 @@ import {
 } from "@mui/material";
 import { signOut } from "next-auth/react";
 import { useRouter } from "next/router";
+import dynamic from "next/dynamic";
 import React, { Fragment, useContext, useEffect, useMemo, useState } from "react";
 import { MixpanelContext } from "services/MixpanelContext";
 import { AdvancedReportContext } from "src/context/AdvancedReportContext";
 import { UserContext } from "src/context/UserContext";
 import { ascendingSort } from "src/helpers/arrays";
 import { getViewAccessClassrooms } from "src/helpers/businessLogic";
-import ReferralsTour from '../tours/Referrals';
-import { ACTIONS, STATUS } from 'react-joyride';
 import Link from 'src/Link';
 import usePlans from 'src/hooks/usePlans';
 import usePlanUpgradeWarning from 'src/hooks/usePlanUpgradeWarning';
+
+// react-joyride (and its dependencies) is only needed while a tour is shown,
+// so it's excluded from the main bundle everyone downloads on every page.
+const ReferralsTour = dynamic(() => import('../tours/Referrals'), { ssr: false });
+
+// Inlined instead of importing react-joyride just for these string constants.
+const JOYRIDE_STATUS_FINISHED = 'finished';
+const JOYRIDE_ACTION_NEXT = 'next';
 
 const DrawerHeader = styled('div')(({ theme }) => ({
   display: 'flex',
@@ -212,7 +219,7 @@ export default function AppMenu({ institution, user, width, open, toggleDrawer, 
 
   const handleJoyrideCallback = (data) => {
     const { status, type, action } = data;
-    if (status === STATUS.FINISHED && type === 'tour:end' && action === ACTIONS.NEXT) {
+    if (status === JOYRIDE_STATUS_FINISHED && type === 'tour:end' && action === JOYRIDE_ACTION_NEXT) {
       finishTour('finishedReferralsTour');
     }
   }
