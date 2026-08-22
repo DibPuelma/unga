@@ -50,6 +50,7 @@ export default function CurrentPlan() {
   const [subscribing, setSubscribing] = useState(false);
   const [buying, setBuying] = useState(false);
   const [cancelling, setCancelling] = useState(false);
+  const [resuming, setResuming] = useState(false);
   const [packs, setPacks] = useState(1);
   const [message, setMessage] = useState(null);
 
@@ -119,6 +120,20 @@ export default function CurrentPlan() {
       setMessage({ severity: 'error', text: 'No pudimos cancelar tu suscripción. Contáctanos por WhatsApp.' });
     } finally {
       setCancelling(false);
+    }
+  };
+
+  const handleResume = async () => {
+    setResuming(true);
+    setMessage(null);
+    try {
+      await axios.patch('/api/payments/subscription');
+      setMessage({ severity: 'success', text: '¡Listo! Tu suscripción sigue activa y se renovará con normalidad.' });
+      refresh();
+    } catch (e) {
+      setMessage({ severity: 'error', text: 'No pudimos reanudar tu suscripción. Contáctanos por WhatsApp.' });
+    } finally {
+      setResuming(false);
     }
   };
 
@@ -203,13 +218,18 @@ export default function CurrentPlan() {
                   <Stack spacing={2}>
                     <Typography fontWeight={700}>Créditos extra</Typography>
                     <Typography variant="body2" color="text.secondary">
-                      Packs de {CREDIT_PACK_SIZE} créditos por {formatCLP(CREDIT_PACK_PRICE_CLP)}. No vencen y se cobran de inmediato a tu tarjeta registrada.
+                      Packs de {CREDIT_PACK_SIZE} créditos por {formatCLP(CREDIT_PACK_PRICE_CLP)} ({CREDIT_PACK_SIZE} experiencias más). No vencen y se cobran de inmediato a tu tarjeta registrada.
                     </Typography>
                     <Stack direction="row" spacing={2} alignItems="center" justifyContent="center">
                       <Button variant="outlined" size="small" onClick={() => setPacks(Math.max(1, packs - 1))}><RemoveIcon /></Button>
-                      <Typography variant="h6" minWidth={140} textAlign="center">
-                        +{packCredits} créditos · {formatCLP(packPrice)}
-                      </Typography>
+                      <Stack alignItems="center" minWidth={140}>
+                        <Typography variant="h6" textAlign="center">
+                          +{packCredits} créditos · {formatCLP(packPrice)}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          = {packCredits} experiencias
+                        </Typography>
+                      </Stack>
                       <Button variant="outlined" size="small" onClick={() => setPacks(packs + 1)}><AddIcon /></Button>
                     </Stack>
                     <LoadingButton
@@ -224,18 +244,25 @@ export default function CurrentPlan() {
                 </CardContent>
               </Card>
 
-              {!subscription.cancelAtPeriodEnd && (
-                <>
-                  <Divider />
-                  <Stack alignItems="center">
-                    <LoadingButton color="inherit" size="small" loading={cancelling} onClick={handleCancel}>
-                      Cancelar mi suscripción
-                    </LoadingButton>
-                    <Typography variant="caption" color="text.secondary">
-                      Mantendrás el acceso hasta el final del período que ya pagaste.
-                    </Typography>
-                  </Stack>
-                </>
+              <Divider />
+              {subscription.cancelAtPeriodEnd ? (
+                <Stack alignItems="center">
+                  <LoadingButton variant="outlined" size="small" loading={resuming} onClick={handleResume}>
+                    Reanudar mi suscripción
+                  </LoadingButton>
+                  <Typography variant="caption" color="text.secondary">
+                    ¿Te arrepentiste? Reanúdala y sigue disfrutando sin interrupciones.
+                  </Typography>
+                </Stack>
+              ) : (
+                <Stack alignItems="center">
+                  <LoadingButton color="inherit" size="small" loading={cancelling} onClick={handleCancel}>
+                    Cancelar mi suscripción
+                  </LoadingButton>
+                  <Typography variant="caption" color="text.secondary">
+                    Mantendrás el acceso hasta el final del período que ya pagaste.
+                  </Typography>
+                </Stack>
               )}
             </>
           )}
