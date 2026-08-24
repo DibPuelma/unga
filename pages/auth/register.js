@@ -13,6 +13,7 @@ import 'react-phone-input-2/lib/material.css'
 import UngaSelect from 'src/components/utils/UngaSelect';
 import TermsAndConditions from 'src/components/utils/TermsAndConditions';
 import { SIGNUP_CREDITS } from 'src/helpers/plans';
+import { META_EVENTS, TRIAL_CUSTOM_DATA, trackMetaEvent } from 'src/helpers/metaPixel';
 
 const REFERENCE_OPTIONS = [
   'Instagram',
@@ -133,6 +134,15 @@ export default function Register() {
         plan: 'free',
       })
       const { data } = response;
+      // El servidor sólo devuelve metaEventId cuando la prueba efectivamente
+      // comenzó, y ya envió el mismo id por CAPI: Meta une ambos hits en una
+      // sola conversión. Se dispara antes de signIn(), que abandona la página.
+      if (data.metaEventId) {
+        trackMetaEvent(META_EVENTS.START_TRIAL, {
+          eventId: data.metaEventId,
+          customData: TRIAL_CUSTOM_DATA,
+        });
+      }
       if (referrer && isEmail(referrer)) {
         await axios.post('/api/referrals', { referrerEmail: referrer, referredUserId: data.id });
       }
