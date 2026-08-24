@@ -202,6 +202,34 @@ This document lists all environment variables found in the codebase (excluding `
   - **Required**: No (code is commented out)
   - **Status**: ⚠️ **NOT CURRENTLY USED** - The Mixpanel initialization code is commented out
 
+### Meta Pixel & Conversions API (Optional)
+
+Tracks the B2C `StartTrial` conversion from both the browser and the server. See
+`META_PIXEL_CAPI.md` for the full setup and verification guide.
+
+- **`NEXT_PUBLIC_META_PIXEL_ID`**
+  - **Used for**: Meta Pixel ID, shared by the browser Pixel and the Conversions API endpoint
+  - **Where**: `src/components/analytics/MetaPixel.js` and `services/meta/config.js`
+  - **Required**: No (both the Pixel and CAPI no-op when unset)
+  - **Value**: `1446549157333102` (not a secret — it ships in the browser snippet)
+
+- **`META_CAPI_ACCESS_TOKEN`**
+  - **Used for**: Conversions API access token (server-only secret)
+  - **Where**: `services/meta/config.js`
+  - **Required**: No (CAPI is skipped when unset; the browser Pixel still fires)
+  - **Usage**: Generated in Events Manager > Settings > Conversions API > Generate access token
+
+- **`META_CAPI_TEST_EVENT_CODE`**
+  - **Used for**: Routes server events into Events Manager > Test Events
+  - **Where**: `services/meta/config.js`
+  - **Required**: No
+  - **Note**: ⚠️ Must be **unset in production** — events carrying a test code are not attributed to ads
+
+- **`META_GRAPH_API_VERSION`**
+  - **Used for**: Graph API version used for `POST /{pixel_id}/events`
+  - **Where**: `services/meta/config.js`
+  - **Required**: No (defaults to `v21.0`)
+
 ### Hotjar (Optional)
 
 - **`NEXT_PUBLIC_HOTJAR_HJID`**

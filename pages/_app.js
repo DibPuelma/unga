@@ -19,6 +19,7 @@ import { UserContextProvider } from '../src/context/UserContext';
 import { MixpanelContextProvider } from '../services/MixpanelContext';
 import ConfirmationDialog from '../src/components/dialogs/ConfirmationDialog';
 import Layout from '../src/components/layout/Layout';
+import MetaPixel from '../src/components/analytics/MetaPixel';
 import UngaThemeProvider from 'src/themes/UngaThemeProvider';
 import '../styles/global.css';
 import { AdvancedReportContextProvider } from 'src/context/AdvancedReportContext';
@@ -60,6 +61,9 @@ export default function MyApp(props) {
           <meta name="description" content="Medición del aprendizaje en educación de párvulos" />
           <meta name="viewport" content="initial-scale=1, width=device-width" />
         </Head>
+          {/* Fuera del Layout: el pixel debe cargar también en las páginas de
+              auth y en la landing, que se renderizan sin el chrome de la app. */}
+          <MetaPixel />
           <UserContextProvider>
             <MixpanelContextProvider>
               <DialogContextProvider>
