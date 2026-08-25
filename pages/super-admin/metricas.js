@@ -323,9 +323,14 @@ const renderStatusChip = ({ value }) => (value ? (
   <Chip size="small" variant="outlined" label={STATUS_LABELS[value] || value} color={STATUS_COLORS[value] || 'default'} />
 ) : '—');
 
+const renderExperiencesRatio = (createdField, availableField) => ({ row }) => (
+  `${row[createdField]} de ${row[availableField]}`
+);
+
 const SUBSCRIPTION_COLUMNS = [
   { field: 'userName', headerName: 'Nombre', flex: 1.6, minWidth: 160 },
   { field: 'userEmail', headerName: 'Email', flex: 2, minWidth: 200 },
+  { field: 'userPhoneNumber', headerName: 'Teléfono', flex: 1, minWidth: 130 },
   { field: 'userCreatedAt', headerName: 'Fecha registro', flex: 1, minWidth: 120 },
   { field: 'createdAt', headerName: 'Fecha suscripción', flex: 1, minWidth: 130 },
   { field: 'amount', headerName: 'Monto', flex: 0.8, minWidth: 90 },
@@ -333,11 +338,19 @@ const SUBSCRIPTION_COLUMNS = [
   { field: 'cancelAtPeriodEnd', headerName: 'Cancela al cierre', flex: 0.9, minWidth: 120 },
   { field: 'currentPeriodEnd', headerName: 'Fin período', flex: 1, minWidth: 110 },
   { field: 'cancelledAt', headerName: 'Cancelada el', flex: 1, minWidth: 110 },
+  {
+    field: 'experiencesThisMonth',
+    headerName: 'Experiencias del mes',
+    flex: 1,
+    minWidth: 140,
+    renderCell: renderExperiencesRatio('experiencesThisMonth', 'experiencesMonthlyQuota'),
+  },
 ];
 
 const REGISTRATION_COLUMNS = [
   { field: 'name', headerName: 'Nombre', flex: 1.6, minWidth: 160 },
   { field: 'email', headerName: 'Email', flex: 2, minWidth: 200 },
+  { field: 'phoneNumber', headerName: 'Teléfono', flex: 1, minWidth: 130 },
   { field: 'createdAt', headerName: 'Fecha registro', flex: 1, minWidth: 120 },
   { field: 'plan', headerName: 'Plan', flex: 0.8, minWidth: 90 },
   { field: 'paymentStartedAt', headerName: 'Inició pago', flex: 1, minWidth: 110 },
@@ -345,12 +358,20 @@ const REGISTRATION_COLUMNS = [
   { field: 'subscriptionCreatedAt', headerName: 'Fecha suscripción', flex: 1, minWidth: 130 },
   { field: 'subscriptionCancelledAt', headerName: 'Cancelada el', flex: 1, minWidth: 110 },
   { field: 'reference', headerName: 'Referencia', flex: 1, minWidth: 110 },
+  {
+    field: 'experiencesCreated',
+    headerName: 'Experiencias (prueba)',
+    flex: 1,
+    minWidth: 130,
+    renderCell: renderExperiencesRatio('experiencesCreated', 'experiencesAvailable'),
+  },
 ];
 
 const toSubscriptionRow = (subscription) => ({
   id: subscription.id,
   userName: subscription.userName || '—',
   userEmail: subscription.userEmail || '—',
+  userPhoneNumber: subscription.userPhoneNumber || '—',
   userCreatedAt: formatDay(subscription.userCreatedAt),
   createdAt: formatDay(subscription.createdAt),
   amount: formatCLP(subscription.amount),
@@ -358,12 +379,15 @@ const toSubscriptionRow = (subscription) => ({
   cancelAtPeriodEnd: subscription.cancelAtPeriodEnd ? 'Sí' : '—',
   currentPeriodEnd: formatDay(subscription.currentPeriodEnd),
   cancelledAt: formatDay(subscription.cancelledAt),
+  experiencesThisMonth: subscription.experiencesThisMonth,
+  experiencesMonthlyQuota: subscription.experiencesMonthlyQuota,
 });
 
 const toRegistrationRow = (user) => ({
   id: user.id,
   name: user.name || '—',
   email: user.email || '—',
+  phoneNumber: user.phoneNumber || '—',
   createdAt: formatDay(user.createdAt),
   plan: user.plan,
   paymentStartedAt: formatDay(user.paymentStartedAt),
@@ -371,6 +395,8 @@ const toRegistrationRow = (user) => ({
   subscriptionCreatedAt: formatDay(user.subscriptionCreatedAt),
   subscriptionCancelledAt: formatDay(user.subscriptionCancelledAt),
   reference: user.reference || '—',
+  experiencesCreated: user.experiencesCreated,
+  experiencesAvailable: user.experiencesAvailable,
 });
 
 function DrilldownDialog({ drilldown, onClose }) {
@@ -631,6 +657,28 @@ export default function Metricas({ period, range, current, previous, subscriptio
             title="Packs de créditos"
             value={b2c.creditPacksSold}
             caption={`${formatCLP(b2c.creditPackRevenue)} · ${b2c.creditsGranted} créditos otorgados`}
+          />
+        </Grid>
+      </Box>
+
+      <Box>
+        <SectionTitle title="IA y experiencias" subtitle="Generación de experiencias con IA en el período" />
+        <Grid container spacing={2}>
+          <StatCard
+            title="Experiencias creadas"
+            value={current.ai.experiencesCreated}
+            previousValue={previous.ai.experiencesCreated}
+            caption={`Período anterior: ${previous.ai.experiencesCreated}`}
+          />
+          <StatCard
+            title="Tokens usados"
+            value={current.ai.tokensUsed.toLocaleString('es-CL')}
+            caption={`Período anterior: ${previous.ai.tokensUsed.toLocaleString('es-CL')}`}
+          />
+          <StatCard
+            title="Gasto en tokens"
+            value={formatCLP(current.ai.tokensCostCLP)}
+            caption={`Período anterior: ${formatCLP(previous.ai.tokensCostCLP)} · estimado`}
           />
         </Grid>
       </Box>
