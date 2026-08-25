@@ -37,6 +37,7 @@
     "cookie": "^0.4.2",
     "crypto": "^1.0.1",
     "dictionary-es": "^4.0.0",
+    "dictionary-es-cl": "^2.0.0",
     "file-saver": "^2.0.5",
     "formidable": "^3.5.1",
     "hoist-non-react-statics": "^3.3.2",
