@@ -5,7 +5,7 @@ import moment from 'moment';
 import { getInstitutionCoresWithObjectives } from "db/core";
 import { getLevelForClassroom, getNonHeterogeneousLevels, HETEROGENEOUS_TO_NON_HETEROGENEUS } from "db/level";
 import { useRouter } from "next/router";
-import { useContext, useEffect, useMemo, useState } from "react";
+import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { isAuthorized } from "services/Authorization";
 import { MixpanelContext } from "services/MixpanelContext";
 import ActivityCardSmall from "src/components/activity/ActivityCardSmall";
@@ -119,14 +119,20 @@ export default function Activities({
 
   useEffect(() => setShowFilters(smUp), [smUp]);
 
-  // B2C: live search — filters auto-apply with a debounce, no "Aplicar" button.
+  // Live text search for everyone: debounced, skips the first render so it
+  // doesn't race the initial data fetch. Select-based filters (cores,
+  // objectives, levels, themes) still require "Aplicar Filtros" for B2B.
+  const isFirstSearchRender = useRef(true);
   useEffect(() => {
-    if (!isB2C || loading) return;
+    if (isFirstSearchRender.current) {
+      isFirstSearchRender.current = false;
+      return;
+    }
     const timeout = setTimeout(() => {
       handleSearchActivities();
     }, 400);
     return () => clearTimeout(timeout);
-  }, [filters]);
+  }, [filters.searchText]);
 
   useEffect(() => {
     const initialDataFetch = async () => {

@@ -247,12 +247,18 @@ export const getObservationsByClassAndCore = async (classroomId, coreId) => {
   return filtered;
 }
 
-export const getObservationsByClass = async (classroomId) => {
+export const getObservationsByClass = async (classroomId, { startDate, endDate } = {}) => {
+  const where = {
+    classroomId,
+    deletedAt: null,
+  };
+
+  if (startDate && endDate) {
+    where.observedAt = { gte: new Date(startDate), lte: new Date(endDate) };
+  }
+
   const observations = await prisma.observations.findMany({
-    where: {
-      classroomId,
-      deletedAt: null,
-    },
+    where,
     include: {
       Students: {
         where: {
