@@ -1,5 +1,5 @@
 import React from 'react';
-import { AppBar, Box, Button, Container, Stack, Toolbar } from '@mui/material';
+import { AppBar, Button, Container, Stack, Toolbar } from '@mui/material';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -10,7 +10,6 @@ export default function LandingNav() {
         <Toolbar disableGutters sx={{ justifyContent: 'space-between' }}>
           <Stack direction="row" alignItems="center" spacing={1}>
             <Image src="/logo-mark.png" alt="Unga" width={59} height={40} />
-            <Box sx={{ fontWeight: 700, fontSize: 22, color: '#575757' }}>Unga</Box>
           </Stack>
           <Stack direction="row" spacing={2} alignItems="center" sx={{ display: { xs: 'none', md: 'flex' } }}>
             <Button color="inherit" href="#como-funciona">Cómo funciona</Button>

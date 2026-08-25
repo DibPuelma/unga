@@ -15,7 +15,6 @@ export default function LandingFooter() {
         >
           <Stack direction="row" spacing={1} alignItems="center">
             <Image src="/logo-mark.png" alt="Unga" width={47} height={32} />
-            <Typography sx={{ fontWeight: 700 }}>Unga</Typography>
           </Stack>
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={{ xs: 1, sm: 3 }}>
             <MuiLink component={Link} href="/privacy-policy" color="inherit" underline="hover">
