@@ -51,7 +51,7 @@ export default function Register() {
       value: '',
       label: 'Número celular',
       error: '',
-      optional: true,
+      optional: isParent,
     },
     reference: {
       value: referrer ? 'Una colega o amiga' : '',
@@ -189,7 +189,7 @@ export default function Register() {
                     onlyCountries={['cl', 'ar', 'mx', 'pe', 'co', 'uy', 'ec', 'bo', 'py', 've', 'gt', 'sv', 'hn', 'ni', 'cr', 'pa']}
                     preferredCountries={['cl', 'mx']}
                     country={'cl'}
-                    specialLabel="Número celular (opcional)"
+                    specialLabel={isParent ? 'Número celular (opcional)' : 'Número celular*'}
                     countryCodeEditable={false}
                     value={formData[field].value}
                     onChange={handlePhoneNumberChange}

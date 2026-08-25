@@ -6,14 +6,17 @@ import { sendTrialStartedEvent } from 'services/meta/conversionsApi';
 export default async (req, res) => {
   const { body } = req;
   if (req.method === 'POST') {
+    // Public signup: role and plan are constrained — institutional accounts
+    // are only created by an admin inviting the user.
+    const role = body.role === 'parent' ? 'parent' : 'teacher';
+
     const requiredParams = ['email', 'firstName', 'lastName', 'country', 'password'];
+    // Educators need a reachable phone number; parents don't.
+    if (role === 'teacher') requiredParams.push('phoneNumber');
     for (const param of requiredParams) {
       if (!body[param]) return res.status(400).json({ message: `Parameter ${param} is required` });
     }
 
-    // Public signup: role and plan are constrained — institutional accounts
-    // are only created by an admin inviting the user.
-    const role = body.role === 'parent' ? 'parent' : 'teacher';
     // The form sends country as { name, code }; the column is a String.
     const country = typeof body.country === 'string' ? body.country : body.country?.name || 'Chile';
 
