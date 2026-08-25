@@ -137,6 +137,10 @@ export default function ClassObservations({ observations, after, classroom }) {
       </Stack>
       <ObservationsList
         printable
+        spellcheckable
+        classroomId={classroom.id}
+        startDate={startDate}
+        endDate={endDate}
         columns={{ sm: 1, md: 2, xl: 3 }}
         observations={items}
         emptyText="Aún no se registran observaciones en esta sala"

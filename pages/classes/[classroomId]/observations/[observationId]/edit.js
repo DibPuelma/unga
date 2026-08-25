@@ -8,12 +8,14 @@ import {
   Autocomplete,
   Box,
   Button,
+  Chip,
   Container,
   Grid,
   MenuItem,
   Snackbar,
   Stack,
   TextField,
+  Typography,
 } from '@mui/material';
 import { SaveOutlined, ArrowBackOutlined } from '@mui/icons-material';
 import { DatePicker } from '@mui/x-date-pickers';
@@ -74,6 +76,7 @@ export default function Observation({ cores, students, classroom, institution, o
   const [createLoading, setCreateLoading] = useState(false);
   const [createError, setCreateError] = useState('');
   const [observedAtError, setObservedAtError] = useState('');
+  const [misspelledWords, setMisspelledWords] = useState([]);
   const handleStudentsChange = (_, value) => setSelectedStudents(value);
   const handleObservationText = ({ target: { value } }) => setObservationDescription(value);
   const handleCoreChange = ({ target: { value } }) => {
@@ -86,6 +89,32 @@ export default function Observation({ cores, students, classroom, institution, o
   };
 
   useInterval(() => handleSave({ autosave: true }), AUTOSAVE_INTERVAL);
+
+  // Manual spellcheck correction queue: ObservationsList links here with the
+  // remaining record ids and the original total, so we can show "registro X
+  // de Y" and hand off to the next flagged record on save/skip.
+  const spellcheckTotal = Number(router.query.spellcheckTotal) || 0;
+  const remainingQueue = router.query.spellcheckQueue ? router.query.spellcheckQueue.split(',').filter(Boolean) : [];
+  const currentQueuePosition = spellcheckTotal > 0 ? spellcheckTotal - remainingQueue.length : 0;
+
+  useEffect(() => {
+    let cancelled = false;
+    axios.get(`/api/observations/${observation.id}/spellcheck`).then(({ data }) => {
+      if (!cancelled) setMisspelledWords(data.words);
+    });
+    return () => { cancelled = true; }
+  }, [observation.id]);
+
+  const goToNextInQueue = () => {
+    const [nextId, ...rest] = remainingQueue;
+    if (!nextId) {
+      router.replace(`/classes/${classroom.id}/observations`);
+      return;
+    }
+    const params = new URLSearchParams({ spellcheckTotal: String(spellcheckTotal) });
+    if (rest.length > 0) params.set('spellcheckQueue', rest.join(','));
+    router.replace(`/classes/${classroom.id}/observations/${nextId}/edit?${params.toString()}`);
+  }
 
   const completedMandatory = useMemo(() => (
     selectedStudents.length > 0 && (observationDescription || Object.keys(selectedAssets).length > 0)
@@ -135,7 +164,13 @@ export default function Observation({ cores, students, classroom, institution, o
         assets: Object.values(selectedAssets),
       })
 
-      if (!autosave) router.replace(`/classes/${classroom.id}/observations`);
+      if (!autosave) {
+        if (spellcheckTotal > 0) {
+          goToNextInQueue();
+        } else {
+          router.replace(`/classes/${classroom.id}/observations`);
+        }
+      }
     } catch (error) {
       switch (error.message) {
         case 'Network Error':
@@ -166,6 +201,14 @@ export default function Observation({ cores, students, classroom, institution, o
       <Stack mb={3} mt={1}>
         <TutorialLink id="87b39fe309364a9990fdb28a9cd9a881" />
       </Stack>
+      {spellcheckTotal > 0 && (
+        <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
+          <Typography variant="body2" color="text.secondary">
+            {`Registro ${Math.min(currentQueuePosition, spellcheckTotal)} de ${spellcheckTotal}`}
+          </Typography>
+          <Button size="small" onClick={goToNextInQueue}>Saltar</Button>
+        </Stack>
+      )}
       <Box>
         <Box mb={2}>
           <Autocomplete
@@ -195,6 +238,19 @@ export default function Observation({ cores, students, classroom, institution, o
             maxRows={4}
             onChange={handleObservationText}
           />
+          {misspelledWords.length > 0 && (
+            <Stack direction="row" flexWrap="wrap" gap={1} mt={1}>
+              {misspelledWords.map(({ word, suggestions }) => (
+                <Chip
+                  key={word}
+                  size="small"
+                  color="warning"
+                  variant="outlined"
+                  label={suggestions?.[0] ? `${word} (sug: ${suggestions[0]})` : word}
+                />
+              ))}
+            </Stack>
+          )}
         </Box>
         <Box mb={2}>
           <DatePicker

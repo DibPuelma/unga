@@ -3,13 +3,14 @@ import {
   Box,
   Button,
   Checkbox,
+  Chip,
   Grid,
   IconButton,
   Paper,
   Stack,
   Typography,
 } from '@mui/material';
-import { Close, EditOutlined } from '@mui/icons-material';
+import { Close, EditOutlined, SpellcheckOutlined } from '@mui/icons-material';
 import AssetShowcase from '../assets/AssetShowcase';
 import { isEmpty } from '../../helpers/objects';
 import { arrayToListText } from '../../helpers/arrays';
@@ -27,6 +28,7 @@ export default function ObservationCard({
   noName = false,
   noActions = false,
   report = false,
+  spellingIssuesCount = 0,
 }) {
   const {
     id,
@@ -83,6 +85,16 @@ export default function ObservationCard({
                 </Typography>
               )}
             </Stack>
+            {spellingIssuesCount > 0 && (
+              <Box mt={1}>
+                <Chip
+                  size="small"
+                  color="warning"
+                  icon={<SpellcheckOutlined />}
+                  label={`Errores ortográficos (${spellingIssuesCount})`}
+                />
+              </Box>
+            )}
             <Box mt={1}>
               <Typography variant="body2">{description}</Typography>
             </Box>
