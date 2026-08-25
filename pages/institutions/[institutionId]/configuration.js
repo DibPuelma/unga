@@ -2,6 +2,7 @@ import { getClassesByInstitution } from "db/class";
 import { getCores } from "db/core";
 import { getCurricularObjectivesByInstitution } from "db/curricularObjectives";
 import { getInstitutionWithConfiguration } from "db/institution"
+import { getNonHeterogeneousLevels } from "db/level";
 import { getObjectivesByInstitution } from "db/objective";
 import { getAllStudentsForInstitution } from "db/student";
 import { getSubObjectivesForInstitution } from "db/subObjectives";
@@ -24,6 +25,7 @@ export async function getServerSideProps(context) {
   const principal = principals.length > 0 ? principals[0] : null;
   const allEmployees = [...teachers, ...coordinators];
   const allClassrooms = await getClassesByInstitution(institutionId);
+  const allLevels = await getNonHeterogeneousLevels();
   const allSubObjectives = await getSubObjectivesForInstitution(institutionId);
   const allCores = await getCores(institutionId);
   const allCurricularObjectives = await getCurricularObjectivesByInstitution(institutionId);
@@ -36,6 +38,7 @@ export async function getServerSideProps(context) {
       allEmployees,
       user,
       allClassrooms,
+      allLevels,
       allSubObjectives,
       allCores,
       allCurricularObjectives,

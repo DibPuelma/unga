@@ -28,7 +28,8 @@ export function InstitutionConfigurationContextProvider({
   institution,
   user,
   children,
-  allClassrooms,
+  allClassrooms: propsAllClassrooms,
+  allLevels,
   allObjectives,
   allSubObjectives,
   allCores,
@@ -48,6 +49,7 @@ export function InstitutionConfigurationContextProvider({
     institution.configuration?.activities || DEFAULT_ACTIVITIES_CONFIG
   );
   const [allEmployees, setAllEmployees] = useState(propsAllEmployees);
+  const [allClassrooms, setAllClassrooms] = useState(propsAllClassrooms);
   const [printConfig, setPrintConfig] = useState(institution.configuration?.print || DEFAULT_PRINT_CONFIG)
   const [institutionFormData, setInstitutionFormData] = useState({
     name: institution.name,
@@ -67,7 +69,9 @@ export function InstitutionConfigurationContextProvider({
       principal,
       institutionId,
       allClassrooms,
+      setAllClassrooms,
       allowedClassrooms,
+      allLevels,
       allObjectives,
       allSubObjectives,
       reportConfig,
