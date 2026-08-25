@@ -137,7 +137,9 @@ export const getBusinessMetrics = async ({ from, to }) => {
         users_PlannedActivities_teacherIdTousers: INSTITUTIONAL_TEACHER,
       },
     }),
-    prisma.activities.count({ where: { createdAt: { gte: from, lt: to }, deletedAt: null } }),
+    prisma.activities.count({
+      where: { createdAt: { gte: from, lt: to }, deletedAt: null, fromSuggestion: true },
+    }),
     prisma.openAIApiCalls.aggregate({
       _sum: { tokensUsed: true },
       where: { createdAt: { gte: from, lt: to } },
