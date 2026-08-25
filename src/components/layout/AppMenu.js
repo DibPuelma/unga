@@ -298,6 +298,9 @@ export default function AppMenu({ institution, user, width, open, toggleDrawer, 
             <ListItemButton href="/super-admin/conversion-funnel">
               <ListItemText>Funnel de conversión</ListItemText>
             </ListItemButton>
+            <ListItemButton href="/super-admin/metricas">
+              <ListItemText>Métricas de negocio</ListItemText>
+            </ListItemButton>
             <ListItemButton href="/super-admin/referrals">
               <ListItemText>Referrals</ListItemText>
             </ListItemButton>
