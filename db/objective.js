@@ -195,15 +195,18 @@ export const deleteObjectiveFromClassroom = async (objectiveId, classroomId) => 
 
 export const updateObjective = async (objectiveId, { name, position, newClassroom, curricularObjective }) => {
   const updateData = {};
-  
+
   if (name) updateData.name = name;
   if (position !== undefined) updateData.position = position;
   if (curricularObjective !== undefined) {
     updateData.curricularObjectiveId = curricularObjective || null;
   }
 
+  let currentObjective = null;
+  let syncLevelIds = null;
+
   if (newClassroom) {
-    const objective = await prisma.objectives.findUnique({
+    currentObjective = await prisma.objectives.findUnique({
       where: { id: objectiveId },
       include: {
         Classes: {
@@ -217,8 +220,8 @@ export const updateObjective = async (objectiveId, { name, position, newClassroo
       include: { Levels: true },
     });
 
-    if (objective && newClassroomRecord) {
-      const allClassrooms = [...objective.Classes, newClassroomRecord];
+    if (currentObjective && newClassroomRecord) {
+      const allClassrooms = [...currentObjective.Classes, newClassroomRecord];
       const allLevelIds = [...new Set(allClassrooms.map((c) => c.levelId))];
 
       updateData.Classes = {
@@ -232,6 +235,7 @@ export const updateObjective = async (objectiveId, { name, position, newClassroo
           },
         })),
       };
+      syncLevelIds = allLevelIds;
 
       const childSubObjectives = await prisma.subObjectives.findMany({
         where: { objectiveId, deletedAt: null },
@@ -242,6 +246,35 @@ export const updateObjective = async (objectiveId, { name, position, newClassroo
           data: {
             Levels: { set: allLevelIds.map((id) => ({ id })) },
             Classes: { set: allClassrooms.map((c) => ({ id: c.id })) },
+          },
+        });
+      }
+    }
+  }
+
+  // Keep the linked OA's own levels in sync with the indicator's levels: the planning UI only offers an
+  // indicator once its OA is selectable for that same level, so a gap here silently makes the indicator
+  // unreachable even though it's correctly configured on its own. Only relevant when this call actually
+  // touches classrooms/levels or the OA link itself.
+  if (newClassroom || curricularObjective !== undefined) {
+    const effectiveCurricularObjectiveId = curricularObjective !== undefined
+      ? (curricularObjective || null)
+      : (currentObjective?.curricularObjectiveId ?? (
+          await prisma.objectives.findUnique({ where: { id: objectiveId }, select: { curricularObjectiveId: true } })
+        )?.curricularObjectiveId);
+
+    if (effectiveCurricularObjectiveId) {
+      const levelIdsToSync = syncLevelIds ?? (
+        await prisma.objectiveLevels.findMany({ where: { objectiveId }, select: { levelId: true } })
+      ).map((ol) => ol.levelId);
+
+      if (levelIdsToSync.length > 0) {
+        await prisma.curricularObjectives.update({
+          where: { id: effectiveCurricularObjectiveId },
+          data: {
+            Levels: {
+              connect: levelIdsToSync.map((id) => ({ id })),
+            },
           },
         });
       }
