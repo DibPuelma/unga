@@ -37,7 +37,7 @@ export const getBusinessMetrics = async ({ from, to }) => {
     prisma.subscriptions.count({
       where: { status: { in: SUBSCRIBED_STATUSES }, cancelAtPeriodEnd: true },
     }),
-    prisma.users.count({
+    prisma.user.count({
       where: {
         createdAt: { gte: from, lt: to },
         plan: { in: B2C_PLANS },
@@ -45,7 +45,7 @@ export const getBusinessMetrics = async ({ from, to }) => {
         role: { not: 'superAdmin' },
       },
     }),
-    prisma.users.count({
+    prisma.user.count({
       where: {
         createdAt: { gte: from, lt: to },
         plan: { in: B2C_PLANS },
@@ -98,7 +98,7 @@ export const getBusinessMetrics = async ({ from, to }) => {
         users: INSTITUTIONAL_TEACHER,
       },
     }),
-    prisma.users.groupBy({
+    prisma.user.groupBy({
       by: ['role'],
       _count: { _all: true },
       where: {
@@ -207,7 +207,7 @@ export const getSubscriptionsDetail = async ({ from }) => {
 // Usuarios B2C registrados en el período, con su última suscripción, para el
 // drill-down de registros y la serie diaria. Mismos filtros que newB2CUsers.
 export const getRegistrationsDetail = async ({ from, to }) => {
-  const registrations = await prisma.users.findMany({
+  const registrations = await prisma.user.findMany({
     where: {
       createdAt: { gte: from, lt: to },
       plan: { in: B2C_PLANS },
