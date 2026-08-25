@@ -33,13 +33,13 @@ export async function getServerSideProps(context) {
     classrooms.map(async (classroom) => {
       // Get main teacher
       const mainTeacher = classroom.mainTeacherId
-        ? await prisma.users.findUnique({
+        ? await prisma.user.findUnique({
             where: { id: classroom.mainTeacherId },
           })
         : null;
 
       // Get all teachers assigned to this classroom (users with classrooms array containing this classroom ID)
-      const allTeachers = await prisma.users.findMany({
+      const allTeachers = await prisma.user.findMany({
         where: {
           classrooms: { has: classroom.id },
           institutionId,

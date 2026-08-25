@@ -55,10 +55,10 @@ export const getInstitutionWithConfiguration = async (institutionId) => {
 
   const config = institution.configuration || {};
   const principal = config.employeesRoles?.principal
-    ? await prisma.users.findUnique({ where: { id: config.employeesRoles.principal } })
+    ? await prisma.user.findUnique({ where: { id: config.employeesRoles.principal } })
     : null;
   const coordinator = config.employeesRoles?.coordinator
-    ? await prisma.users.findUnique({ where: { id: config.employeesRoles.coordinator } })
+    ? await prisma.user.findUnique({ where: { id: config.employeesRoles.coordinator } })
     : null;
 
   const result = {
@@ -181,13 +181,13 @@ export const updateInstitution = async (institutionId, {
       const oldCoordinatorId = institution?.configuration?.employeesRoles?.coordinator;
       
       if (oldCoordinatorId) {
-        await prisma.users.update({
+        await prisma.user.update({
           where: { id: oldCoordinatorId },
           data: { role: 'teacher' },
         });
       }
 
-      await prisma.users.update({
+      await prisma.user.update({
         where: { id: configuration.employeesRoles.coordinator },
         data: { role: 'coordinator' },
       });

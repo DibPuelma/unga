@@ -20,7 +20,7 @@ model Account {
   scope             String?
   id_token          String?
   session_state     String?
-  users             users   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
   @@index([userId])
@@ -48,11 +48,11 @@ model Activities {
   updatedAt                                                          DateTime                            @updatedAt
   themeId                                                            String?
   publiclyAvailable                                                  Boolean?                            @default(false)
-  users_Activities_creatorIdTousers                                  users                               @relation("Activities_creatorIdTousers", fields: [creatorId], references: [id])
+  users_Activities_creatorIdTousers                                  User                                @relation("Activities_creatorIdTousers", fields: [creatorId], references: [id])
   Institutions_Activities_originalSponsorInstitutionIdToInstitutions Institutions?                       @relation("Activities_originalSponsorInstitutionIdToInstitutions", fields: [originalSponsorInstitutionId], references: [id])
   Institutions_Activities_sponsorInstitutionIdToInstitutions         Institutions?                       @relation("Activities_sponsorInstitutionIdToInstitutions", fields: [sponsorInstitutionId], references: [id])
   ActivitiesThemes                                                   ActivitiesThemes?                   @relation(fields: [themeId], references: [id])
-  users_Activities_updatedByIdTousers                                users?                              @relation("Activities_updatedByIdTousers", fields: [updatedById], references: [id])
+  users_Activities_updatedByIdTousers                                User?                               @relation("Activities_updatedByIdTousers", fields: [updatedById], references: [id])
   ActivityReviews                                                    ActivityReviews[]
   Observations                                                       Observations[]
   PlannedActivities                                                  PlannedActivities[]
@@ -100,7 +100,7 @@ model Attendances {
   teacherId      String?
   Classes        Classes  @relation(fields: [classroomId], references: [id])
   Students       Students @relation(fields: [studentId], references: [id])
-  users          users?   @relation(fields: [teacherId], references: [id])
+  users          User?    @relation(fields: [teacherId], references: [id])
 
   @@index([classroomId, attendanceDate])
   @@index([studentId, attendanceDate])
@@ -119,7 +119,7 @@ model Classes {
   Attendances                  Attendances[]
   Institutions                 Institutions                   @relation(fields: [institutionId], references: [id], onDelete: Cascade)
   Levels                       Levels                         @relation(fields: [levelId], references: [id])
-  users                        users?                         @relation(fields: [mainTeacherId], references: [id])
+  users                        User?                          @relation(fields: [mainTeacherId], references: [id])
   ClassroomReportConfiguration ClassroomReportConfiguration?
   Evaluations                  Evaluations[]
   Observations                 Observations[]
@@ -186,8 +186,8 @@ model CurricularObjectives {
   name                              String
   country                           String?
   methodology                       String?
-  institutionId                    String
-  coreId                           String
+  institutionId                     String
+  coreId                            String
   createdAt                         DateTime                            @default(now())
   updatedAt                         DateTime                            @updatedAt
   ConsequentialCurricularObjectives ConsequentialCurricularObjectives[]
@@ -211,7 +211,7 @@ model DownloadedStudentsReports {
   reportData     Json?        @default("{}")
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
-  users          users?       @relation(fields: [downloadedById], references: [id])
+  users          User?        @relation(fields: [downloadedById], references: [id])
   Institutions   Institutions @relation(fields: [institutionId], references: [id])
 
   @@index([institutionId])
@@ -239,8 +239,8 @@ model Evaluations {
   Objectives                                                                   Objectives          @relation(fields: [objectiveId], references: [id])
   LevelsOfAchievement_Evaluations_oldLevelOfAchievementIdToLevelsOfAchievement LevelsOfAchievement @relation("Evaluations_oldLevelOfAchievementIdToLevelsOfAchievement", fields: [oldLevelOfAchievementId], references: [id])
   Students                                                                     Students            @relation(fields: [studentId], references: [id])
-  users_Evaluations_teacherIdTousers                                           users               @relation("Evaluations_teacherIdTousers", fields: [teacherId], references: [id])
-  users_Evaluations_updatedByIdTousers                                         users?              @relation("Evaluations_updatedByIdTousers", fields: [updatedById], references: [id])
+  users_Evaluations_teacherIdTousers                                           User                @relation("Evaluations_teacherIdTousers", fields: [teacherId], references: [id])
+  users_Evaluations_updatedByIdTousers                                         User?               @relation("Evaluations_updatedByIdTousers", fields: [updatedById], references: [id])
 
   @@index([createdAt])
   @@index([institutionId])
@@ -282,7 +282,7 @@ model Institutions {
   Students                                                         Students[]
   SubObjectives                                                    SubObjectives[]
   SubObjectivesEvaluations                                         SubObjectivesEvaluations[]
-  users                                                            users[]
+  users                                                            User[]
   InstitutionCalendarEvents                                        InstitutionCalendarEvents[]
   CurricularObjectives                                             CurricularObjectives[]
 
@@ -290,16 +290,16 @@ model Institutions {
 }
 
 model InstitutionCalendarEvents {
-  id                  String       @id @default(cuid())
-  name                String
-  startDay            DateTime     @db.Date
-  endDay              DateTime     @db.Date
-  shouldShowInCalendar Boolean     @default(true)
-  isHoliday           Boolean      @default(false)
-  institutionId       String
-  createdAt           DateTime     @default(now())
-  updatedAt           DateTime     @updatedAt
-  Institutions        Institutions @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  id                   String       @id @default(cuid())
+  name                 String
+  startDay             DateTime     @db.Date
+  endDay               DateTime     @db.Date
+  shouldShowInCalendar Boolean      @default(true)
+  isHoliday            Boolean      @default(false)
+  institutionId        String
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
+  Institutions         Institutions @relation(fields: [institutionId], references: [id], onDelete: Cascade)
 
   @@index([institutionId])
   @@index([startDay, endDay])
@@ -354,7 +354,7 @@ model Objectives {
   institutionId                String?
   Evaluations                  Evaluations[]
   Cores                        Cores                          @relation(fields: [coreId], references: [id], onDelete: Cascade)
-  users                        users                          @relation(fields: [createdById], references: [id])
+  users                        User                           @relation(fields: [createdById], references: [id])
   CurricularObjectives         CurricularObjectives?          @relation(fields: [curricularObjectiveId], references: [id])
   Institutions                 Institutions?                  @relation(fields: [institutionId], references: [id])
   PlannedActivitiesEvaluations PlannedActivitiesEvaluations[]
@@ -388,7 +388,7 @@ model Observations {
   Cores             Cores?             @relation(fields: [coreId], references: [id])
   Institutions      Institutions?      @relation(fields: [institutionId], references: [id])
   PlannedActivities PlannedActivities? @relation(fields: [plannedActivityId], references: [id])
-  users             users              @relation(fields: [teacherId], references: [id])
+  users             User               @relation(fields: [teacherId], references: [id])
   Students          Students[]         @relation("ObservationStudents")
   Reports           Reports[]          @relation("ReportObservations")
 
@@ -409,7 +409,7 @@ model OpenAIApiCalls {
   tokensUsed Int?
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
-  users      users    @relation(fields: [userId], references: [id])
+  users      User     @relation(fields: [userId], references: [id])
 
   @@index([userId])
 }
@@ -425,7 +425,7 @@ model PMFAnswers {
   answeredAt     DateTime?
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
-  users          users     @relation(fields: [userId], references: [id])
+  users          User      @relation(fields: [userId], references: [id])
 
   @@index([userId, createdAt])
 }
@@ -446,10 +446,10 @@ model PlannedActivities {
   Observations                               Observations[]
   Activities                                 Activities                     @relation(fields: [activityId], references: [id])
   Classes                                    Classes                        @relation(fields: [classroomId], references: [id])
-  users_PlannedActivities_deletedByIdTousers users?                         @relation("PlannedActivities_deletedByIdTousers", fields: [deletedById], references: [id])
+  users_PlannedActivities_deletedByIdTousers User?                          @relation("PlannedActivities_deletedByIdTousers", fields: [deletedById], references: [id])
   Institutions                               Institutions                   @relation(fields: [institutionId], references: [id], onDelete: Cascade)
   Levels                                     Levels?                        @relation(fields: [levelId], references: [id])
-  users_PlannedActivities_teacherIdTousers   users                          @relation("PlannedActivities_teacherIdTousers", fields: [teacherId], references: [id])
+  users_PlannedActivities_teacherIdTousers   User                           @relation("PlannedActivities_teacherIdTousers", fields: [teacherId], references: [id])
   PlannedActivitiesEvaluations               PlannedActivitiesEvaluations[]
 
   @@index([classroomId])
@@ -487,7 +487,7 @@ model PlannedActivitiesEvaluations {
   PlannedActivities                                                                             PlannedActivities   @relation(fields: [plannedActivityId], references: [id])
   Students                                                                                      Students            @relation(fields: [studentId], references: [id])
   SubObjectives                                                                                 SubObjectives?      @relation(fields: [subObjectiveId], references: [id])
-  users                                                                                         users               @relation(fields: [teacherId], references: [id])
+  users                                                                                         User                @relation(fields: [teacherId], references: [id])
 }
 
 model Referrals {
@@ -499,8 +499,8 @@ model Referrals {
   amountToPay                       Float    @default(5000)
   createdAt                         DateTime @default(now())
   updatedAt                         DateTime @updatedAt
-  users_Referrals_referredIdTousers users    @relation("Referrals_referredIdTousers", fields: [referredId], references: [id])
-  users_Referrals_referrerIdTousers users    @relation("Referrals_referrerIdTousers", fields: [referrerId], references: [id])
+  users_Referrals_referredIdTousers User     @relation("Referrals_referredIdTousers", fields: [referredId], references: [id])
+  users_Referrals_referrerIdTousers User     @relation("Referrals_referrerIdTousers", fields: [referrerId], references: [id])
 
   @@index([referredId])
   @@index([referrerId])
@@ -521,10 +521,10 @@ model Reports {
   Classes                        Classes          @relation(fields: [classroomId], references: [id])
   Institutions                   Institutions     @relation(fields: [institutionId], references: [id])
   Students                       Students         @relation(fields: [studentId], references: [id])
-  users_Reports_teacherIdTousers users            @relation("Reports_teacherIdTousers", fields: [teacherId], references: [id])
+  users_Reports_teacherIdTousers User             @relation("Reports_teacherIdTousers", fields: [teacherId], references: [id])
   ReportsOptions                 ReportsOptions[]
   Observations                   Observations[]   @relation("ReportObservations")
-  users_UpdatedBy                users[]          @relation("UpdatedBy")
+  users_UpdatedBy                User[]           @relation("UpdatedBy")
 
   @@unique([studentId, classroomId])
   @@index([studentId, classroomId])
@@ -554,7 +554,7 @@ model Session {
   sessionToken String   @unique
   userId       String
   expires      DateTime
-  users        users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
 }
@@ -602,7 +602,7 @@ model SubObjectives {
   updatedAt                    DateTime                       @updatedAt
   PlannedActivitiesEvaluations PlannedActivitiesEvaluations[]
   Cores                        Cores                          @relation(fields: [coreId], references: [id], onDelete: Cascade)
-  users                        users                          @relation(fields: [createdById], references: [id])
+  users                        User                           @relation(fields: [createdById], references: [id])
   CurricularObjectives         CurricularObjectives?          @relation(fields: [curricularObjectiveId], references: [id])
   Institutions                 Institutions                   @relation(fields: [institutionId], references: [id], onDelete: Cascade)
   Objectives                   Objectives                     @relation(fields: [objectiveId], references: [id], onDelete: Cascade)
@@ -639,7 +639,7 @@ model SubObjectivesEvaluations {
   LevelsOfAchievement_SubObjectivesEvaluations_oldLevelOfAchievementIdToLevelsOfAchievement LevelsOfAchievement @relation("SubObjectivesEvaluations_oldLevelOfAchievementIdToLevelsOfAchievement", fields: [oldLevelOfAchievementId], references: [id])
   Students                                                                                  Students            @relation(fields: [studentId], references: [id])
   SubObjectives                                                                             SubObjectives       @relation(fields: [subObjectiveId], references: [id])
-  users                                                                                     users               @relation(fields: [teacherId], references: [id])
+  users                                                                                     User                @relation(fields: [teacherId], references: [id])
 
   @@index([createdAt])
   @@index([institutionId])
@@ -690,7 +690,7 @@ model ObjectiveLevels {
   @@map("_ObjectiveLevels")
 }
 
-model users {
+model User {
   id                                                     String                         @id @default(cuid())
   email                                                  String?                        @unique
   emailVerified                                          DateTime?
@@ -752,6 +752,7 @@ model users {
   @@index([institutionId])
   @@index([role, institutionId])
   @@index([classrooms], type: Gin)
+  @@map("users")
 }
 
 model RegisteredCards {
@@ -768,7 +769,7 @@ model RegisteredCards {
   errorCode                 String?
   createdAt                 DateTime        @default(now())
   updatedAt                 DateTime        @updatedAt
-  users                     users           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  users                     User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   Subscriptions             Subscriptions[]
 
   @@index([userId])
@@ -789,7 +790,7 @@ model Subscriptions {
   cancelledAt          DateTime?
   createdAt            DateTime         @default(now())
   updatedAt            DateTime         @updatedAt
-  users                users            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  users                User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   RegisteredCards      RegisteredCards? @relation(fields: [registeredCardId], references: [id])
   Payments             Payments[]
 
@@ -813,7 +814,7 @@ model Payments {
   raw               Json?
   createdAt         DateTime       @default(now())
   updatedAt         DateTime       @updatedAt
-  users             users          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  users             User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   Subscriptions     Subscriptions? @relation(fields: [subscriptionId], references: [id])
 
   @@index([userId])
@@ -828,7 +829,7 @@ model CreditTransactions {
   balanceAfter Int
   relatedId    String?
   createdAt    DateTime @default(now())
-  users        users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  users        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([relatedId, reason])
   @@index([userId, createdAt])

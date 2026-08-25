@@ -32,7 +32,7 @@ export const authOptions = {
           await sendEmail({
             to: email,
             from,
-            subject: 'Cambia tu contraseña en Unga',
+            subject: 'Restablece tu contraseña en Unga',
             react: <ResetPasswordEmail url={url} host={host} email={email} />,
           })
         } else {

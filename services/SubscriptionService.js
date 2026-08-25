@@ -90,7 +90,7 @@ export default class SubscriptionService {
       raw: charge.raw,
     });
 
-    await prisma.users.update({
+    await prisma.user.update({
       where: { id: user.id },
       data: { plan: 'unga', paymentStartedAt: new Date(), planCanceledAt: null },
     });
@@ -146,7 +146,7 @@ export default class SubscriptionService {
       cancelledAt: new Date(),
       nextRetryAt: null,
     });
-    await prisma.users.update({
+    await prisma.user.update({
       where: { id: subscription.userId },
       data: { plan: 'free', planCanceledAt: new Date(), monthlyCredits: 0 },
     });
@@ -186,7 +186,7 @@ export default class SubscriptionService {
         nextRetryAt: null,
         paymentFailureReason: null,
       });
-      await prisma.users.update({
+      await prisma.user.update({
         where: { id: subscription.userId },
         data: { plan: 'unga' },
       });

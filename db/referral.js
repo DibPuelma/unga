@@ -8,7 +8,7 @@ export const statusToSpanish = {
 }
 
 export const createReferral = async ({ referrerEmail, referredUserId }) => {
-  const referrer = await prisma.users.findUnique({
+  const referrer = await prisma.user.findUnique({
     where: { email: referrerEmail },
   });
 
