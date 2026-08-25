@@ -125,6 +125,7 @@ export async function getServerSideProps(context) {
 
 const formatCLP = (n) => `$${n.toLocaleString('es-CL')}`;
 const formatDay = (iso) => (iso ? moment.tz(iso, TIMEZONE).format('YYYY-MM-DD') : '—');
+const formatDayTime = (iso) => (iso ? moment.tz(iso, TIMEZONE).format('YYYY-MM-DD HH:mm') : '—');
 
 const buildDays = (fromIso, toIso) => {
   const days = [];
@@ -331,7 +332,7 @@ const SUBSCRIPTION_COLUMNS = [
   { field: 'userName', headerName: 'Nombre', flex: 1.6, minWidth: 160 },
   { field: 'userEmail', headerName: 'Email', flex: 2, minWidth: 200 },
   { field: 'userPhoneNumber', headerName: 'Teléfono', flex: 1, minWidth: 130 },
-  { field: 'userCreatedAt', headerName: 'Fecha registro', flex: 1, minWidth: 120 },
+  { field: 'userCreatedAt', headerName: 'Fecha registro', flex: 1, minWidth: 150 },
   { field: 'createdAt', headerName: 'Fecha suscripción', flex: 1, minWidth: 130 },
   { field: 'amount', headerName: 'Monto', flex: 0.8, minWidth: 90 },
   { field: 'status', headerName: 'Estado', flex: 1, minWidth: 120, renderCell: renderStatusChip },
@@ -351,7 +352,7 @@ const REGISTRATION_COLUMNS = [
   { field: 'name', headerName: 'Nombre', flex: 1.6, minWidth: 160 },
   { field: 'email', headerName: 'Email', flex: 2, minWidth: 200 },
   { field: 'phoneNumber', headerName: 'Teléfono', flex: 1, minWidth: 130 },
-  { field: 'createdAt', headerName: 'Fecha registro', flex: 1, minWidth: 120 },
+  { field: 'createdAt', headerName: 'Fecha registro', flex: 1, minWidth: 150 },
   { field: 'plan', headerName: 'Plan', flex: 0.8, minWidth: 90 },
   { field: 'paymentStartedAt', headerName: 'Inició pago', flex: 1, minWidth: 110 },
   { field: 'subscriptionStatus', headerName: 'Suscripción', flex: 1, minWidth: 120, renderCell: renderStatusChip },
@@ -372,7 +373,7 @@ const toSubscriptionRow = (subscription) => ({
   userName: subscription.userName || '—',
   userEmail: subscription.userEmail || '—',
   userPhoneNumber: subscription.userPhoneNumber || '—',
-  userCreatedAt: formatDay(subscription.userCreatedAt),
+  userCreatedAt: formatDayTime(subscription.userCreatedAt),
   createdAt: formatDay(subscription.createdAt),
   amount: formatCLP(subscription.amount),
   status: subscription.status,
@@ -388,7 +389,7 @@ const toRegistrationRow = (user) => ({
   name: user.name || '—',
   email: user.email || '—',
   phoneNumber: user.phoneNumber || '—',
-  createdAt: formatDay(user.createdAt),
+  createdAt: formatDayTime(user.createdAt),
   plan: user.plan,
   paymentStartedAt: formatDay(user.paymentStartedAt),
   subscriptionStatus: user.subscriptionStatus,
