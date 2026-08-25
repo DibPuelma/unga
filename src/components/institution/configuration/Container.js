@@ -2,6 +2,7 @@ import { Alert, Box, Snackbar, Tab, Tabs } from "@mui/material";
 import axios from "axios";
 import Head from "next/head";
 import { useContext, useMemo, useState } from "react";
+import ClassroomsConfiguration from "src/components/institution/configuration/tabs/Classrooms";
 import EmployeesConfiguration from "src/components/institution/configuration/tabs/Employees";
 import GeneralConfiguration from "src/components/institution/configuration/tabs/General";
 import ReportConfiguration from "src/components/institution/configuration/tabs/Report";
@@ -28,6 +29,11 @@ export default function ConfigureInstitutionContainer() {
   )
 
   const canConfigureStudents = useMemo(() => true, [])
+
+  const canConfigureClassrooms = useMemo(() =>
+    user.role === 'principal',
+    [user]
+  )
 
 
   const INITIAL_SAVE_ACTIONS = {
@@ -96,6 +102,13 @@ export default function ConfigureInstitutionContainer() {
                 display: canConfigureStudents ? 'inherit' : 'none'
               }}
             />
+            <Tab
+              label="Salas"
+              disabled={!canConfigureClassrooms}
+              sx={{
+                display: canConfigureClassrooms ? 'inherit' : 'none'
+              }}
+            />
           </Tabs>
         </Box>
         <Box p={2}>
@@ -128,6 +141,9 @@ export default function ConfigureInstitutionContainer() {
           )}
           {tabValue === 6 && (
             <StudentsConfiguration />
+          )}
+          {tabValue === 7 && (
+            <ClassroomsConfiguration />
           )}
         </Box>
       </Box>

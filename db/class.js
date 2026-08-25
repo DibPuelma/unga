@@ -11,6 +11,7 @@ export const createClassroom = async ({ name, level, institution, mainTeacher })
       institutionId: institution,
       mainTeacherId: mainTeacher || null,
         },
+    include: { Levels: true },
   });
 
   // Automatically associate objectives based on level and institution

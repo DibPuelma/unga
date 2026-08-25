@@ -487,7 +487,24 @@ export function MixpanelContextProvider({ children }) {
     // customIdentify();
     // mixpanel.track('Onboarding Create Classrooms')
   }
-  
+
+  const trackCreateClassroom = ({
+    classroomId,
+    name,
+    levelId,
+    levelName,
+    institutionId,
+  }) => {
+    // customIdentify();
+    // mixpanel.track('Create Classroom', {
+    //   'Classroom Id': classroomId,
+    //   'Name': name,
+    //   'Level Id': levelId,
+    //   'Level Name': levelName,
+    //   'Institution Id': institutionId,
+    // })
+  }
+
   const trackPurchasePlan = (plan) => {
     // customIdentify();
     // mixpanel.track('Purchase Plan', {
@@ -593,6 +610,7 @@ export function MixpanelContextProvider({ children }) {
       trackPurchasePlan,
       trackSelectPlan,
       trackOnboardingCreateClassrooms,
+      trackCreateClassroom,
       trackOnboardingOpenLibraryModal,
       trackRemoveTeacherFromClassroom,
       trackDuplicatePublicActivity,
