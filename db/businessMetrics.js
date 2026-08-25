@@ -161,3 +161,106 @@ export const getBusinessMetrics = async ({ from, to }) => {
     },
   };
 };
+
+// Detalle por suscripción para el drill-down del dashboard: vigentes (para
+// activos/riesgo/cancelarán) más las creadas o canceladas desde `from` (para
+// nuevas suscripciones y churn del período). Fechas como ISO string para que
+// getServerSideProps pueda serializarlas.
+export const getSubscriptionsDetail = async ({ from }) => {
+  const subscriptions = await prisma.subscriptions.findMany({
+    where: {
+      OR: [
+        { status: { in: SUBSCRIBED_STATUSES } },
+        { createdAt: { gte: from } },
+        { cancelledAt: { gte: from } },
+      ],
+    },
+    select: {
+      id: true,
+      status: true,
+      amount: true,
+      cancelAtPeriodEnd: true,
+      cancelledAt: true,
+      createdAt: true,
+      currentPeriodEnd: true,
+      users: {
+        select: { id: true, firstName: true, lastName: true, email: true, createdAt: true },
+      },
+    },
+    orderBy: { createdAt: 'desc' },
+  });
+
+  return subscriptions.map((subscription) => ({
+    id: subscription.id,
+    status: subscription.status,
+    amount: subscription.amount,
+    cancelAtPeriodEnd: subscription.cancelAtPeriodEnd,
+    cancelledAt: subscription.cancelledAt?.toISOString() || null,
+    createdAt: subscription.createdAt.toISOString(),
+    currentPeriodEnd: subscription.currentPeriodEnd.toISOString(),
+    userName: [subscription.users.firstName, subscription.users.lastName].filter(Boolean).join(' '),
+    userEmail: subscription.users.email || null,
+    userCreatedAt: subscription.users.createdAt.toISOString(),
+  }));
+};
+
+// Usuarios B2C registrados en el período, con su última suscripción, para el
+// drill-down de registros y la serie diaria. Mismos filtros que newB2CUsers.
+export const getRegistrationsDetail = async ({ from, to }) => {
+  const registrations = await prisma.users.findMany({
+    where: {
+      createdAt: { gte: from, lt: to },
+      plan: { in: B2C_PLANS },
+      deletedAt: null,
+      role: { not: 'superAdmin' },
+    },
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      email: true,
+      plan: true,
+      reference: true,
+      createdAt: true,
+      paymentStartedAt: true,
+      Subscriptions: {
+        select: { status: true, createdAt: true, cancelledAt: true },
+        orderBy: { createdAt: 'desc' },
+        take: 1,
+      },
+    },
+    orderBy: { createdAt: 'desc' },
+  });
+
+  return registrations.map(({ Subscriptions: [subscription], ...user }) => ({
+    id: user.id,
+    name: [user.firstName, user.lastName].filter(Boolean).join(' '),
+    email: user.email || null,
+    plan: user.plan,
+    reference: user.reference || null,
+    createdAt: user.createdAt.toISOString(),
+    paymentStartedAt: user.paymentStartedAt?.toISOString() || null,
+    subscriptionStatus: subscription?.status || null,
+    subscriptionCreatedAt: subscription?.createdAt.toISOString() || null,
+    subscriptionCancelledAt: subscription?.cancelledAt?.toISOString() || null,
+  }));
+};
+
+// Pagos aprobados del período para la serie diaria de ingresos.
+export const getApprovedPaymentsDetail = async ({ from, to }) => {
+  const payments = await prisma.payments.findMany({
+    where: {
+      status: 'approved',
+      type: { in: ['subscription_first', 'subscription_renewal', 'credit_pack'] },
+      createdAt: { gte: from, lt: to },
+    },
+    select: { amount: true, type: true, createdAt: true },
+    orderBy: { createdAt: 'asc' },
+  });
+
+  return payments.map((payment) => ({
+    amount: payment.amount,
+    type: payment.type,
+    createdAt: payment.createdAt.toISOString(),
+  }));
+};
