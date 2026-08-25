@@ -1,5 +1,6 @@
 import { getObservation } from 'db/observation';
 import { checkText } from 'services/spellcheck';
+import { classroomNameWords } from 'services/spellcheck/classroomNames';
 import { authOptions } from 'pages/api/auth/[...nextauth]'
 import { getServerSession } from "next-auth/next"
 import { classroomAuthorization } from 'pages/api/auth/authorizations';
@@ -17,8 +18,10 @@ export default async (req, res) => {
   const authorized = await classroomAuthorization(session.user, observation.classroomId);
   if (!authorized) return res.status(403).end();
 
+  // The full classroom roster covers children mentioned but not tagged in the
+  // observation; the tagged teacher may come from outside the classroom's staff.
   const customWords = [
-    ...(observation.students || []).flatMap((student) => [student.firstName, student.lastName]),
+    ...(await classroomNameWords(observation.classroomId)),
     observation.teacher?.firstName,
     observation.teacher?.lastName,
   ].filter(Boolean);

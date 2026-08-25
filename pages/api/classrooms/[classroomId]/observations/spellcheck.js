@@ -1,5 +1,6 @@
 import { getObservationsByClass } from 'db/observation';
 import { checkText } from 'services/spellcheck';
+import { classroomNameWords } from 'services/spellcheck/classroomNames';
 import { authOptions } from 'pages/api/auth/[...nextauth]'
 import { getServerSession } from "next-auth/next"
 import { classroomAuthorization } from 'pages/api/auth/authorizations';
@@ -14,12 +15,16 @@ export default async (req, res) => {
 
   if (req.method !== 'GET') return res.status(405).end();
 
-  const observations = await getObservationsByClass(classroomId, { startDate, endDate });
-  const customWords = observations.flatMap((observation) => ([
-    ...(observation.students || []).flatMap((student) => [student.firstName, student.lastName]),
-    observation.teacher?.firstName,
-    observation.teacher?.lastName,
-  ])).filter(Boolean);
+  const [observations, rosterWords] = await Promise.all([
+    getObservationsByClass(classroomId, { startDate, endDate }),
+    classroomNameWords(classroomId),
+  ]);
+  // The full classroom roster covers children mentioned but not tagged in an
+  // observation; tagged teachers may come from outside the classroom's staff.
+  const customWords = [
+    ...rosterWords,
+    ...observations.flatMap((observation) => [observation.teacher?.firstName, observation.teacher?.lastName]),
+  ].filter(Boolean);
 
   const results = await Promise.all(observations.map(async (observation) => {
     const words = await checkText(observation.description || '', customWords);

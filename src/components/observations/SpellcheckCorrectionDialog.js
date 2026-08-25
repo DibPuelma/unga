@@ -16,7 +16,8 @@ import { LoadingButton } from '@mui/lab';
 const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 const applyCorrection = (description, word, suggestion) => {
-  const pattern = new RegExp(`\\b${escapeRegExp(word)}\\b`, 'giu');
+  // \b is ASCII-only and misses boundaries next to accented letters (Antú, algodón).
+  const pattern = new RegExp(`(?<!\\p{L})${escapeRegExp(word)}(?!\\p{L})`, 'giu');
   return description.replace(pattern, (match) => (
     match[0] === match[0].toUpperCase()
       ? suggestion[0].toUpperCase() + suggestion.slice(1)
@@ -24,24 +25,32 @@ const applyCorrection = (description, word, suggestion) => {
   ));
 }
 
+const correctionKey = (observationId, word) => `${observationId}:${word.toLowerCase()}`;
+
 // Confirmation step before bulk-applying spelling corrections: these are
 // official child records, so nothing gets changed silently. Shows exactly
 // which word → suggestion swaps will happen per record, and lets the
-// educator exclude any record whose suggestions don't look right.
+// educator exclude a whole record or tap individual chips to drop just the
+// suggestions that don't look right.
 export default function SpellcheckCorrectionDialog({ open, onClose, observations, spellingIssuesById, onApplied }) {
   const [includedIds, setIncludedIds] = useState([]);
+  const [excludedWords, setExcludedWords] = useState(() => new Set());
   const [applying, setApplying] = useState(false);
 
   const corrections = useMemo(() => observations.map((observation) => {
     const issues = (spellingIssuesById[observation.id] || []).filter((issue) => issue.suggestions?.length > 0);
-    const correctedDescription = issues.reduce((description, issue) => (
+    const activeIssues = issues.filter((issue) => !excludedWords.has(correctionKey(observation.id, issue.word)));
+    const correctedDescription = activeIssues.reduce((description, issue) => (
       applyCorrection(description, issue.word, issue.suggestions[0])
     ), observation.description);
-    return { observation, issues, correctedDescription };
-  }).filter(({ issues }) => issues.length > 0), [observations, spellingIssuesById]);
+    return { observation, issues, activeIssues, correctedDescription };
+  }).filter(({ issues }) => issues.length > 0), [observations, spellingIssuesById, excludedWords]);
 
   useEffect(() => {
-    if (open) setIncludedIds(corrections.map(({ observation }) => observation.id));
+    if (open) {
+      setIncludedIds(corrections.map(({ observation }) => observation.id));
+      setExcludedWords(new Set());
+    }
   }, [open]);
 
   const toggleIncluded = (id) => {
@@ -50,10 +59,23 @@ export default function SpellcheckCorrectionDialog({ open, onClose, observations
     ));
   }
 
+  const toggleWord = (observationId, word) => {
+    setExcludedWords((oldValue) => {
+      const newValue = new Set(oldValue);
+      const key = correctionKey(observationId, word);
+      if (newValue.has(key)) newValue.delete(key);
+      else newValue.add(key);
+      return newValue;
+    });
+  }
+
+  const toApply = corrections.filter(({ observation, activeIssues }) => (
+    includedIds.includes(observation.id) && activeIssues.length > 0
+  ));
+
   const handleConfirm = async () => {
     setApplying(true);
     try {
-      const toApply = corrections.filter(({ observation }) => includedIds.includes(observation.id));
       await Promise.all(toApply.map(({ observation, correctedDescription }) => (
         axios.patch(`/api/observations/${observation.id}`, { description: correctedDescription })
       )));
@@ -68,7 +90,8 @@ export default function SpellcheckCorrectionDialog({ open, onClose, observations
       <DialogTitle>Confirmar corrección automática</DialogTitle>
       <DialogContent>
         <Typography variant="body2" color="text.secondary" mb={2}>
-          Se reemplazará cada palabra marcada por su sugerencia. Revisa los cambios antes de aplicarlos.
+          Se reemplazará cada palabra marcada por su sugerencia. Revisa los cambios antes de
+          aplicarlos: puedes tocar una sugerencia para descartarla sin excluir el resto.
         </Typography>
         <Stack divider={<Divider />} rowGap={2}>
           {corrections.map(({ observation, issues }) => (
@@ -80,15 +103,20 @@ export default function SpellcheckCorrectionDialog({ open, onClose, observations
               <Stack>
                 <Typography variant="body2">{observation.description}</Typography>
                 <Stack direction="row" flexWrap="wrap" gap={1} mt={1}>
-                  {issues.map((issue) => (
-                    <Chip
-                      key={issue.word}
-                      size="small"
-                      color="warning"
-                      variant="outlined"
-                      label={`${issue.word} → ${issue.suggestions[0]}`}
-                    />
-                  ))}
+                  {issues.map((issue) => {
+                    const excluded = excludedWords.has(correctionKey(observation.id, issue.word));
+                    return (
+                      <Chip
+                        key={issue.word}
+                        size="small"
+                        color={excluded ? 'default' : 'warning'}
+                        variant="outlined"
+                        label={`${issue.word} → ${issue.suggestions[0]}`}
+                        onClick={() => toggleWord(observation.id, issue.word)}
+                        sx={excluded ? { textDecoration: 'line-through', opacity: 0.6 } : undefined}
+                      />
+                    );
+                  })}
                 </Stack>
               </Stack>
             </Stack>
@@ -101,10 +129,10 @@ export default function SpellcheckCorrectionDialog({ open, onClose, observations
           variant="contained"
           color="warning"
           loading={applying}
-          disabled={includedIds.length === 0}
+          disabled={toApply.length === 0}
           onClick={handleConfirm}
         >
-          Aplicar correcciones ({includedIds.length})
+          Aplicar correcciones ({toApply.length})
         </LoadingButton>
       </DialogActions>
     </Dialog>
