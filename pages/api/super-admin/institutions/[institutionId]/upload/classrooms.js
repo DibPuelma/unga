@@ -100,7 +100,7 @@ export default async function handler(req, res) {
         // Find main teacher if provided
         let mainTeacherId = null;
         if (row.mainTeacherEmail && row.mainTeacherEmail.trim()) {
-          const teacher = await prisma.users.findUnique({
+          const teacher = await prisma.user.findUnique({
             where: { email: row.mainTeacherEmail.trim() },
           });
 

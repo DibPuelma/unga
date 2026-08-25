@@ -10,7 +10,7 @@ export class InsufficientCreditsError extends Error {
 }
 
 const currentBalances = async (tx, userId) => {
-  const user = await tx.users.findUnique({
+  const user = await tx.user.findUnique({
     where: { id: userId },
     select: { monthlyCredits: true, extraCredits: true },
   });
@@ -23,14 +23,14 @@ const currentBalances = async (tx, userId) => {
 export const consumeCredit = async (userId, relatedId) => {
   return prisma.$transaction(async (tx) => {
     let bucket = 'monthly';
-    let updated = await tx.users.updateMany({
+    let updated = await tx.user.updateMany({
       where: { id: userId, monthlyCredits: { gte: 1 } },
       data: { monthlyCredits: { decrement: 1 } },
     });
 
     if (updated.count === 0) {
       bucket = 'extra';
-      updated = await tx.users.updateMany({
+      updated = await tx.user.updateMany({
         where: { id: userId, extraCredits: { gte: 1 } },
         data: { extraCredits: { decrement: 1 } },
       });
@@ -65,7 +65,7 @@ export const refundCredit = async (userId, relatedId) => {
   try {
     return await prisma.$transaction(async (tx) => {
       const field = consumed.bucket === 'extra' ? 'extraCredits' : 'monthlyCredits';
-      await tx.users.update({
+      await tx.user.update({
         where: { id: userId },
         data: { [field]: { increment: 1 } },
       });
@@ -103,7 +103,7 @@ export const grantSignupCredits = async (userId) => {
           relatedId: userId,
         },
       });
-      await tx.users.update({
+      await tx.user.update({
         where: { id: userId },
         data: { monthlyCredits: SIGNUP_CREDITS },
       });
@@ -121,7 +121,7 @@ export const grantMonthlyCredits = async (userId, relatedId) => {
   try {
     return await prisma.$transaction(async (tx) => {
       const before = await currentBalances(tx, userId);
-      await tx.users.update({
+      await tx.user.update({
         where: { id: userId },
         data: { monthlyCredits: MONTHLY_CREDITS },
       });
@@ -159,7 +159,7 @@ export const grantMonthlyCredits = async (userId, relatedId) => {
 export const grantExtraCredits = async (userId, credits, relatedId) => {
   try {
     return await prisma.$transaction(async (tx) => {
-      await tx.users.update({
+      await tx.user.update({
         where: { id: userId },
         data: { extraCredits: { increment: credits } },
       });
@@ -183,7 +183,7 @@ export const grantExtraCredits = async (userId, credits, relatedId) => {
 };
 
 export const getCreditBalances = async (userId) => {
-  return prisma.users.findUnique({
+  return prisma.user.findUnique({
     where: { id: userId },
     select: { monthlyCredits: true, extraCredits: true, plan: true },
   });

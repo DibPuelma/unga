@@ -80,7 +80,7 @@ export const createUser = async ({
     userData.password = await bcrypt.hash(password, 10);
   }
 
-  const newUser = await prisma.users.create({
+  const newUser = await prisma.user.create({
     data: userData,
     include: {
       Institutions: true,
@@ -103,7 +103,7 @@ export const createUser = async ({
 }
 
 export const removeUserFromInstitution = async (userId) => {
-  const user = await prisma.users.update({
+  const user = await prisma.user.update({
     where: { id: userId },
       data: {
       institutionId: null,
@@ -115,7 +115,7 @@ export const removeUserFromInstitution = async (userId) => {
 }
 
 export const softDeleteUser = async (userId) => {
-  const user = await prisma.users.update({
+  const user = await prisma.user.update({
     where: { id: userId },
       data: {
       deletedAt: new Date(),
@@ -126,7 +126,7 @@ export const softDeleteUser = async (userId) => {
 }
 
 export const checkEmailExists = async (email) => {
-  const user = await prisma.users.findUnique({
+  const user = await prisma.user.findUnique({
     where: { email },
   });
 
@@ -142,7 +142,7 @@ export const updateUser = async (userId, data) => {
   }
   
   if (data.sawActivity) {
-    const user = await prisma.users.findUnique({
+    const user = await prisma.user.findUnique({
       where: { id: userId },
       select: { seenActivities: true },
     });
@@ -163,7 +163,7 @@ export const updateUser = async (userId, data) => {
     updateData.signature = normalizeAssetForWrite(data.signature);
   }
 
-  const updatedUser = await prisma.users.update({
+  const updatedUser = await prisma.user.update({
     where: { id: userId },
     data: updateData,
   });
@@ -176,7 +176,7 @@ export const updateUser = async (userId, data) => {
 }
 
 export const getUserData = async (userId) => {
-  const user = await prisma.users.findUnique({
+  const user = await prisma.user.findUnique({
     where: { id: userId },
     include: {
       Institutions: true,
@@ -193,7 +193,7 @@ export const getUserData = async (userId) => {
 }
 
 export const getAllInstitutionUsers = async (institutionId) => {
-  const users = await prisma.users.findMany({
+  const users = await prisma.user.findMany({
     where: {
       institutionId,
     },
@@ -203,7 +203,7 @@ export const getAllInstitutionUsers = async (institutionId) => {
 }
 
 export const getInstitutionPrincipals = async (institutionId) => {
-  const users = await prisma.users.findMany({
+  const users = await prisma.user.findMany({
     where: {
       role: 'principal',
       institutionId,
@@ -215,7 +215,7 @@ export const getInstitutionPrincipals = async (institutionId) => {
 }
 
 export const getInstitutionCoordinators = async (institutionId) => {
-  const users = await prisma.users.findMany({
+  const users = await prisma.user.findMany({
     where: {
       role: 'coordinator',
       institutionId,
@@ -227,7 +227,7 @@ export const getInstitutionCoordinators = async (institutionId) => {
 }
 
 export const getInstitutionTeachers = async (institutionId) => {
-  const users = await prisma.users.findMany({
+  const users = await prisma.user.findMany({
     where: {
       role: 'teacher',
       institutionId,
@@ -238,7 +238,7 @@ export const getInstitutionTeachers = async (institutionId) => {
 }
 
 export const getActiveInstitutionTeachersAndCoordinators = async (institutionId) => {
-  const users = await prisma.users.findMany({
+  const users = await prisma.user.findMany({
     where: {
       role: { in: ['teacher', 'coordinator'] },
       institutionId,
@@ -250,7 +250,7 @@ export const getActiveInstitutionTeachersAndCoordinators = async (institutionId)
 }
 
 export const getAllTeachers = async () => {
-  const users = await prisma.users.findMany({
+  const users = await prisma.user.findMany({
     where: {
       role: 'teacher',
       institutionId: { not: null },
@@ -291,7 +291,7 @@ export const getAllTeachers = async () => {
 }
 
 export const getAllPrincipals = async () => {
-  const users = await prisma.users.findMany({
+  const users = await prisma.user.findMany({
     where: {
       role: 'principal',
       institutionId: { not: null },
@@ -307,7 +307,7 @@ export const getAllPrincipals = async () => {
 }
 
 export const getAllTeachersWithStatsInRange = async (startDate, endDate) => {
-  const teachers = await prisma.users.findMany({
+  const teachers = await prisma.user.findMany({
     where: {
       role: 'teacher',
       deletedAt: null,
@@ -388,7 +388,7 @@ export const getAllTeachersWithStatsInRange = async (startDate, endDate) => {
 }
 
 export const getClassroomTeachers = async (classroomId) => {
-  const users = await prisma.users.findMany({
+  const users = await prisma.user.findMany({
     where: {
       classrooms: { has: classroomId },
       role: { in: ['teacher', 'coordinator'] },
@@ -399,7 +399,7 @@ export const getClassroomTeachers = async (classroomId) => {
 }
 
 export const getUsersData = async (usersIds) => {
-  const users = await prisma.users.findMany({
+  const users = await prisma.user.findMany({
     where: {
       id: { in: usersIds },
     },
@@ -412,7 +412,7 @@ export const getRegisteredUsersWithDaysAgeEqualTo = async ({ ageInDays, withLeve
   const startOfDay = moment().subtract(ageInDays, 'days').startOf('day').toDate();
   const endOfDay = moment().subtract(ageInDays, 'days').endOf('day').toDate();
 
-  const users = await prisma.users.findMany({
+  const users = await prisma.user.findMany({
     where: {
       plan: 'free',
       createdAt: {
@@ -465,7 +465,7 @@ export const getRegisteredUsersWithDaysAgeEqualTo = async ({ ageInDays, withLeve
 }
 
 export const getAllUsers = async () => {
-  const users = await prisma.users.findMany({
+  const users = await prisma.user.findMany({
     take: 100000,
   });
 

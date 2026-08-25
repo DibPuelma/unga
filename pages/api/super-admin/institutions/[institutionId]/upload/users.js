@@ -93,7 +93,7 @@ export default async function handler(req, res) {
         const userPlan = getUserPlanFromRow(row);
 
         // Check if user already exists
-        const existingUser = await prisma.users.findUnique({
+        const existingUser = await prisma.user.findUnique({
           where: { email },
         });
 
@@ -128,7 +128,7 @@ export default async function handler(req, res) {
           }
 
           if (Object.keys(updateData).length > 0) {
-            await prisma.users.update({
+            await prisma.user.update({
               where: { id: existingUser.id },
               data: updateData,
             });

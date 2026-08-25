@@ -4,7 +4,7 @@ import prisma from './prisma';
 export const login = async (credentials) => {
   const { email, password } = credentials;
   try {
-    const user = await prisma.users.findUnique({
+    const user = await prisma.user.findUnique({
       where: { email },
     });
 
@@ -26,7 +26,7 @@ export const login = async (credentials) => {
 export const resetPassword = async (userId, newPassword) => {
   const hashedPassword = await bcrypt.hash(newPassword, 10);
   
-  const user = await prisma.users.update({
+  const user = await prisma.user.update({
     where: { id: userId },
     data: { password: hashedPassword },
   });

@@ -55,7 +55,7 @@ export const getClassroom = async (classroomId) => {
   if (!classroom) return null;
 
   // Get all teachers for this classroom
-  const teachers = await prisma.users.findMany({
+  const teachers = await prisma.user.findMany({
     where: {
       classrooms: { has: classroomId },
       role: 'teacher',
