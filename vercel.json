@@ -1,19 +1,19 @@
 {
   "crons": [
     {
-      "path": "/api/mailing/registered-users/public-activities-examples",
+      "path": "/api/mailing/registered-users/onboarding-day-1",
       "schedule": "0 6 * * *"
     },
     {
-      "path": "/api/mailing/registered-users/planning-explanation",
+      "path": "/api/mailing/registered-users/onboarding-day-3",
       "schedule": "05 6 * * *"
     },
     {
-      "path": "/api/mailing/registered-users/ai-planning-explanation",
+      "path": "/api/mailing/registered-users/onboarding-day-5",
       "schedule": "10 6 * * *"
     },
     {
-      "path": "/api/mailing/registered-users/evaluation-explanation",
+      "path": "/api/mailing/registered-users/onboarding-day-7",
       "schedule": "15 6 * * *"
     },
     {

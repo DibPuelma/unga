@@ -1,76 +1,60 @@
-import { getNonHeterogeneousLevels } from "db/level";
 import { getRegisteredUsersWithDaysAgeEqualTo } from "db/user";
-import StatisticsService from "services/StatisticsService";
-import { sendExampleActivitiesEmail, sendGenericMassiveEmailWithFirstName } from "./users";
-import { intersection } from "lodash";
-import PlanningExplanationEmail from "src/emails/PlanningExplanation";
-import AIPlanningExplanationEmail from "src/emails/AIPlanningExplanation";
-import EvaluationExplanationEmail from "src/emails/EvaluationExplanation";
+import { sendGenericMassiveEmailWithMagicLink } from "./users";
+import OnboardingDay1Email from "src/emails/OnboardingDay1";
+import OnboardingDay3Email from "src/emails/OnboardingDay3";
+import OnboardingDay5Email from "src/emails/OnboardingDay5";
+import OnboardingDay7Email from "src/emails/OnboardingDay7";
 
 export default class BumperEmailsService {
-  static async sendActivitiesExamplesToRegisteredUsers() {
+  static async sendOnboardingDay1Email() {
+    const ageInDays = 1;
+    const users = await getRegisteredUsersWithDaysAgeEqualTo({ ageInDays, role: 'teacher' });
+    if (users.length === 0) return;
+
+    sendGenericMassiveEmailWithMagicLink({
+      users,
+      EmailComponent: OnboardingDay1Email,
+      subject: '🪄 Crea tu primera experiencia en segundos',
+      callbackUrl: '/',
+    });
+  }
+
+  static async sendOnboardingDay3Email() {
     const ageInDays = 3;
-    const users = await getRegisteredUsersWithDaysAgeEqualTo({ ageInDays, withLevels: true });
+    const users = await getRegisteredUsersWithDaysAgeEqualTo({ ageInDays, role: 'teacher' });
     if (users.length === 0) return;
 
-    const levels = await getNonHeterogeneousLevels();
-    const levelsIds = levels.map((level) => level.id)
-    const usersByLevel = {};
-    users.forEach((user) => {
-      const userNonHeterogeneusLevels = intersection(levelsIds, user.levelsIds);
-      if (userNonHeterogeneusLevels.length === 0) return;
-
-      const levelId = userNonHeterogeneusLevels[0];
-      if (!usersByLevel[levelId]) usersByLevel[levelId] = [];
-      usersByLevel[levelId].push(user);
-    })
-
-    for (let i = 0; i < levelsIds.length; i++) {
-      const levelId = levelsIds[i];
-      if (!usersByLevel[levelId]) continue;
-
-      const top3UsedActivities = (await StatisticsService.getLast30DaysTopUsedPublicActivitiesForLevel(levelId)).slice(0, 3);
-      sendExampleActivitiesEmail(usersByLevel[levelId], top3UsedActivities);
-    }
-  }
-
-  static async sendPlanningExplanationToRegisteredUsers() {
-    const ageInDays = 6;
-    const users = await getRegisteredUsersWithDaysAgeEqualTo({ ageInDays });
-    if (users.length === 0) return;
-
-    sendGenericMassiveEmailWithFirstName({
+    sendGenericMassiveEmailWithMagicLink({
       users,
-      EmailComponent: PlanningExplanationEmail,
-      subject: 'Planifica mejor en Unga',
+      EmailComponent: OnboardingDay3Email,
+      subject: '🎯 Experiencias alineadas a las Bases Curriculares, listas para imprimir',
+      callbackUrl: '/activities',
     });
   }
 
-  static async sendAIPlanningExplanationToRegisteredUsers() {
-    const ageInDays = 10;
-    const users = await getRegisteredUsersWithDaysAgeEqualTo({ ageInDays });
+  static async sendOnboardingDay5Email() {
+    const ageInDays = 5;
+    const users = await getRegisteredUsersWithDaysAgeEqualTo({ ageInDays, role: 'teacher' });
     if (users.length === 0) return;
 
-    sendGenericMassiveEmailWithFirstName({
+    sendGenericMassiveEmailWithMagicLink({
       users,
-      EmailComponent: AIPlanningExplanationEmail,
-      subject: 'Acelera tu planificacion con IA',
+      EmailComponent: OnboardingDay5Email,
+      subject: '🗓️ Tu semana planificada en minutos',
+      callbackUrl: '/planning',
     });
   }
 
-  static async sendEvaluationExplanationToRegisteredUsers() {
-    const ageInDays = 14;
-    const users = await getRegisteredUsersWithDaysAgeEqualTo({ ageInDays });
+  static async sendOnboardingDay7Email() {
+    const ageInDays = 7;
+    const users = await getRegisteredUsersWithDaysAgeEqualTo({ ageInDays, role: 'teacher' });
     if (users.length === 0) return;
 
-    sendGenericMassiveEmailWithFirstName({
+    sendGenericMassiveEmailWithMagicLink({
       users,
-      EmailComponent: EvaluationExplanationEmail,
-      subject: 'Haz seguimiento de avances con Unga',
+      EmailComponent: OnboardingDay7Email,
+      subject: '🌟 Todo lo que ganas con Unga',
+      callbackUrl: '/',
     });
   }
-
-
-
-
 }
