@@ -408,13 +408,16 @@ export const getUsersData = async (usersIds) => {
   return users;
 }
 
-export const getRegisteredUsersWithDaysAgeEqualTo = async ({ ageInDays, withLevels = false }) => {
+export const getRegisteredUsersWithDaysAgeEqualTo = async ({ ageInDays, withLevels = false, role }) => {
   const startOfDay = moment().subtract(ageInDays, 'days').startOf('day').toDate();
   const endOfDay = moment().subtract(ageInDays, 'days').endOf('day').toDate();
 
   const users = await prisma.user.findMany({
     where: {
       plan: 'free',
+      deletedAt: null,
+      email: { not: null },
+      ...(role ? { role } : {}),
       createdAt: {
         gte: startOfDay,
         lte: endOfDay,

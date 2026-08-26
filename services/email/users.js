@@ -1,9 +1,9 @@
 import moment from 'moment-timezone';
 import React from 'react';
 import { sendBatchEmails, sendEmail } from './resend';
+import { generateMagicLoginUrl } from 'services/auth/magicLink';
 import TeacherWelcomeEmail from 'src/emails/TeacherWelcome';
 import ParentWelcomeEmail from 'src/emails/ParentWelcome';
-import ActivityExamplesEmail from 'src/emails/ActivityExamples';
 
 export const sendTeacherWelcomeEmail = async (user) =>
   sendEmail({
@@ -19,29 +19,21 @@ export const sendParentWelcomeEmail = async (user) =>
     react: <ParentWelcomeEmail firstName={user.firstName} />,
   });
 
-export const sendExampleActivitiesEmail = async (users, activitiesIds) => {
-  const activities = activitiesIds.map((id) => ({
-    link: `https://app.unga.cl/activities/${id}`,
-  }));
-
-  return sendBatchEmails(
-    users.map((user) => ({
-      to: user.email,
-      subject: 'Ideas de actividades para tu curso',
-      react: <ActivityExamplesEmail firstName={user.firstName} activities={activities} />,
-    })),
-  );
-};
-
-export const sendGenericMassiveEmailWithFirstName = async ({
+export const sendGenericMassiveEmailWithMagicLink = async ({
   users,
   EmailComponent,
   subject,
-}) =>
-  sendBatchEmails(
-    users.map((user) => ({
+  callbackUrl,
+}) => {
+  const urls = await Promise.all(
+    users.map((user) => generateMagicLoginUrl({ email: user.email, callbackUrl })),
+  );
+
+  return sendBatchEmails(
+    users.map((user, index) => ({
       to: user.email,
       subject,
-      react: <EmailComponent firstName={user.firstName} />,
+      react: <EmailComponent firstName={user.firstName} buttonUrl={urls[index]} />,
     })),
   );
+};
