@@ -43,7 +43,10 @@ export default function ObservationCard({
   } = observation;
   const { printing } = useContext(AdvancedReportContext);
   const { user } = useContext(UserContext);
-  const canEdit = useMemo(() => teacher?.id === user.id, [teacher, user]);
+  const canEdit = useMemo(() => (
+    teacher?.id === user.id
+    || (user.role === 'principal' && user.institution?.id === teacher?.institutionId)
+  ), [teacher, user]);
   const classroomId = useMemo(() => classroom?.id || classroom?.id, [classroom])
   
   if (report) {
