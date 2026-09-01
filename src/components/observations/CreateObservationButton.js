@@ -34,7 +34,7 @@ export default function CreateObservationButton({ classroomId, studentId }) {
       // trackCreateObservation();
       const observationId = response.data.id;
       if (observationId) {
-        router.push(`/classes/${classroomId}/observations/${observationId}/edit`);
+        router.push(`/classes/${classroomId}/observations/${observationId}/edit?returnTo=${encodeURIComponent(router.asPath)}`);
       } else {
         console.error('No observation ID in response:', response.data);
         setLoading(false);
