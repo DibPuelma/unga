@@ -96,6 +96,9 @@ export default function Observation({ cores, students, classroom, institution, o
   const spellcheckTotal = Number(router.query.spellcheckTotal) || 0;
   const remainingQueue = router.query.spellcheckQueue ? router.query.spellcheckQueue.split(',').filter(Boolean) : [];
   const currentQueuePosition = spellcheckTotal > 0 ? spellcheckTotal - remainingQueue.length : 0;
+  // Where to go after saving/cancelling — the page the user came from
+  // (e.g. a student's page), falling back to the classroom observations list.
+  const returnTo = router.query.returnTo || `/classes/${classroom.id}/observations`;
 
   useEffect(() => {
     let cancelled = false;
@@ -108,10 +111,10 @@ export default function Observation({ cores, students, classroom, institution, o
   const goToNextInQueue = () => {
     const [nextId, ...rest] = remainingQueue;
     if (!nextId) {
-      router.replace(`/classes/${classroom.id}/observations`);
+      router.replace(returnTo);
       return;
     }
-    const params = new URLSearchParams({ spellcheckTotal: String(spellcheckTotal) });
+    const params = new URLSearchParams({ spellcheckTotal: String(spellcheckTotal), returnTo });
     if (rest.length > 0) params.set('spellcheckQueue', rest.join(','));
     router.replace(`/classes/${classroom.id}/observations/${nextId}/edit?${params.toString()}`);
   }
@@ -168,7 +171,7 @@ export default function Observation({ cores, students, classroom, institution, o
         if (spellcheckTotal > 0) {
           goToNextInQueue();
         } else {
-          router.replace(`/classes/${classroom.id}/observations`);
+          router.replace(returnTo);
         }
       }
     } catch (error) {

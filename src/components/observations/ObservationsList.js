@@ -110,7 +110,7 @@ export default function ObservationsList({
   const handleManualCorrect = () => {
     const [first, ...rest] = selectedObservations;
     if (!first) return;
-    const params = new URLSearchParams({ spellcheckTotal: String(selectedObservations.length) });
+    const params = new URLSearchParams({ spellcheckTotal: String(selectedObservations.length), returnTo: router.asPath });
     if (rest.length > 0) params.set('spellcheckQueue', rest.map((observation) => observation.id).join(','));
     router.push(`/classes/${classroomId}/observations/${first.id}/edit?${params.toString()}`);
   }

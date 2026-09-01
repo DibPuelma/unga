@@ -1,4 +1,5 @@
 import React, { useContext, useMemo } from 'react';
+import { useRouter } from 'next/router';
 import {
   Box,
   Button,
@@ -43,6 +44,7 @@ export default function ObservationCard({
   } = observation;
   const { printing } = useContext(AdvancedReportContext);
   const { user } = useContext(UserContext);
+  const router = useRouter();
   const canEdit = useMemo(() => (
     teacher?.id === user.id
     || (user.role === 'principal' && user.institution?.id === teacher?.institutionId)
@@ -119,7 +121,7 @@ export default function ObservationCard({
           </Stack>
           {!noActions && canEdit && (
             <Stack direction="row" justifyContent="flex-end" width="100%" spacing={2}>
-              <Link noLinkStyle href={`/classes/${classroomId}/observations/${id}/edit`}>
+              <Link noLinkStyle href={`/classes/${classroomId}/observations/${id}/edit?returnTo=${encodeURIComponent(router.asPath)}`}>
                 <Button variant="outlined" startIcon={<EditOutlined />} sx={{ display: { xs: 'none', sm: 'inline-flex' } }}>
                   Editar
                 </Button>
