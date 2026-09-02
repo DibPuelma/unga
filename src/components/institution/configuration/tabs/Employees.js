@@ -46,7 +46,7 @@ export default function EmployeesConfiguration({
     handleOnConfirmChange,
     setOpen,
   } = useContext(DialogContext);
-  const principalName = `${principal?.firstName} ${principal?.lastName}`;
+  const principalName = principal ? `${principal.firstName} ${principal.lastName}` : 'Sin directora';
   const [classroomsByEmployee, setClassroomsByEmployee] = useState(
     allEmployees.reduce((acc, employee) => {
       acc[employee.id] = employee.classrooms;
