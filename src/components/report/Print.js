@@ -212,17 +212,23 @@ export default function PrintReport({
             </Stack>
           </Grid>
         </Grid>
-        <Box px={6} display={classroomReportConfiguration.showAttendance ? 'block' : 'none'}>
-          <Stack alignItems="center">
-            <Typography variant="h5" mb={1.5} fontWeight="bold">
-              Asistencia
-            </Typography>
-            <StudentAttendanceHeatMap
-              attendanceAnalyticsByDate={attendanceByDate}
-              onFinishRender={() => setAttendanceFinishedRendering(true)}
-            />
-          </Stack>
-        </Box>
+        {/* Mount the chart only when it is actually shown. Hiding it with `display: none`
+            still created a <canvas> a few hundred ms after the download started, and
+            react-to-print crashes when the live tree grows a canvas the clone it already
+            took does not have — which left the download stuck forever. */}
+        {classroomReportConfiguration.showAttendance && (
+          <Box px={6}>
+            <Stack alignItems="center">
+              <Typography variant="h5" mb={1.5} fontWeight="bold">
+                Asistencia
+              </Typography>
+              <StudentAttendanceHeatMap
+                attendanceAnalyticsByDate={attendanceByDate}
+                onFinishRender={() => setAttendanceFinishedRendering(true)}
+              />
+            </Stack>
+          </Box>
+        )}
         <Box px={6} py={2} sx={{ backgroundColor: backgroundGray }}>
           <Typography variant="h5" mb={2} fontWeight="bold" textAlign="center">Descripción de los niveles de logro</Typography>
           <LevelsOfAchievementDescription />

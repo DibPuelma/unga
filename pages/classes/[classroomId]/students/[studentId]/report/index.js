@@ -122,6 +122,8 @@ export default function Report({
   student,
 }) {
   const AUTOSAVE_INTERVAL = 20000;
+  // Generous: the print dialog only opens once every image in the report has loaded.
+  const DOWNLOAD_TIMEOUT = 30000;
   const printButtonRef = useRef();
   const { levelsOfAchievement } = useContext(UserContext);
   const { trackGenerateReport, trackDownloadReport, trackSaveReport } = useContext(MixpanelContext);
@@ -147,11 +149,13 @@ export default function Report({
   const [saveChangesLoading, setSaveChangesLoading] = useState(false);
   const [saveChangesError, setSaveChangesError] = useState(false);
   const [saveChangesSuccess, setSaveChangesSuccess] = useState(false);
+  const [downloadError, setDownloadError] = useState(false);
   const [selectedObservationsByCore, setSelectedObservationsByCore] = useState(report.observationsByCore || {})
   const [mainTab, setMainTab] = useState('summary');
   const [coreTab, setCoreTab] = useState(0);
   const [reportUrl, setReportUrl] = useState('');
   const reportContainerRef = useRef();
+  const downloadTimeoutRef = useRef();
   const timePeriods = useMemo(() => Object.values(activeTimePeriods), [activeTimePeriods]);
   const reportDate = useMemo(() => moment(), [])
 
@@ -251,6 +255,12 @@ export default function Report({
 
   useInterval(() => handleSaveChanges({ showState: false }), AUTOSAVE_INTERVAL);
 
+  const clearDownloadWatchdog = () => {
+    if (!downloadTimeoutRef.current) return;
+    clearTimeout(downloadTimeoutRef.current);
+    downloadTimeoutRef.current = null;
+  };
+
   // const print = useReactToPrint({
   //   content: () => reportContainerRef.current,
   //   documentTitle: `Informe de ${student.data.fullName}.pdf`,
@@ -260,6 +270,11 @@ export default function Report({
     content: () => reportContainerRef.current,
     documentTitle: `Informe de ${student.fullName}.pdf`,
     print: async (printIframe) => {
+      // The dialog is about to open, so the watchdog has nothing left to guard. Stop it
+      // here rather than on `setPrinting(false)` below: `print()` blocks for as long as
+      // the user stays in the dialog, and a slow save would otherwise trip the timer and
+      // report a failure for a download that worked.
+      clearDownloadWatchdog();
       printIframe.contentWindow.print();
       const document = printIframe.contentDocument;
       if (document) {
@@ -291,20 +306,32 @@ export default function Report({
     },
   });
 
-  const transformCanvasToImage = () => {
-    const canvas = document.getElementById('attendance-matrix-canvas');
-    if (!canvas) return;
+  // react-to-print clones the report synchronously but only reads the *live* tree's
+  // <canvas> elements later, when its iframe loads. Any canvas the clone does not have
+  // makes it throw, abandon the print and never open the dialog. Swapping every canvas
+  // for a plain <img> first keeps both trees canvas-free, and an <img> is what has to
+  // end up in the PDF anyway.
+  const transformCanvasesToImages = () => {
+    const container = reportContainerRef.current;
+    if (!container) return;
 
-    const dataUrl = canvas.toDataURL();
-    const canvasImage = document.createElement('img');
-    canvasImage.src = dataUrl;
-    canvasImage.style.width = canvas.style.width;
-    canvasImage.style.height = canvas.style.height;
-    canvas.parentNode.replaceChild(canvasImage, canvas);
+    container.querySelectorAll('canvas').forEach((canvas) => {
+      if (!canvas.parentNode) return;
+      try {
+        const canvasImage = document.createElement('img');
+        canvasImage.src = canvas.toDataURL();
+        canvasImage.style.width = canvas.style.width;
+        canvasImage.style.height = canvas.style.height;
+        canvas.parentNode.replaceChild(canvasImage, canvas);
+      } catch (e) {
+        // A canvas we cannot serialise still must not reach react-to-print.
+        canvas.parentNode.removeChild(canvas);
+      }
+    });
   }
 
   const handleReportDownload = () => {
-    transformCanvasToImage();
+    transformCanvasesToImages();
     print();
   }
 
@@ -313,10 +340,24 @@ export default function Report({
     setPrinting(true);
   }
 
+  // react-to-print never tells us when it gives up: it logs to the console and stops,
+  // which used to leave the page frozen on the full-screen report with no print dialog
+  // and no way back short of reloading. Always hand the editor back to the user.
+  useEffect(() => {
+    if (!printing) return;
+
+    downloadTimeoutRef.current = setTimeout(() => {
+      setPrinting(false);
+      setDownloadError(true);
+    }, DOWNLOAD_TIMEOUT);
+    return clearDownloadWatchdog;
+  }, [printing]);
+
   const handleSnackbarClose = () => {
     setSaveChangesLoading(false);
     setSaveChangesError(false);
     setSaveChangesSuccess(false);
+    setDownloadError(false);
   };
 
   const handleMainTabChange = (_, newValue) => {
@@ -700,6 +741,16 @@ export default function Report({
           >
             <Alert onClose={handleSnackbarClose} severity="error" sx={{ width: '100%' }}>
               Hubo un error al guardar el avance
+            </Alert>
+          </Snackbar>
+          <Snackbar
+            anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+            open={downloadError}
+            onClose={handleSnackbarClose}
+            autoHideDuration={8000}
+          >
+            <Alert onClose={handleSnackbarClose} severity="error" sx={{ width: '100%' }}>
+              No pudimos abrir la ventana de descarga. Vuelve a intentarlo.
             </Alert>
           </Snackbar>
         </Box>
