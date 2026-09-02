@@ -6,6 +6,16 @@ export default function Signature({ signer, isCurrentUser, parent, noSignerText 
   const { printing } = useContext(AdvancedReportContext);
   const normalizedSigner = useMemo(() => ({ ...signer, ...signer?.data }), [signer]);
 
+  // The signature is a Cloudinary asset object, but it reaches this component as a raw JSON
+  // string whenever the signer comes from a getter that skips withParsedAssets. Treat anything
+  // we can't turn into a URL as "no signature" so we show the hint instead of a broken image.
+  const signatureSrc = useMemo(() => {
+    const signature = normalizedSigner.signature;
+    if (!signature) return null;
+    if (typeof signature === 'string') return signature.startsWith('http') ? signature : null;
+    return signature.secure_url || signature.url || null;
+  }, [normalizedSigner]);
+
   const role = {
     principal: 'Directora',
     teacher: 'Educadora',
@@ -13,7 +23,7 @@ export default function Signature({ signer, isCurrentUser, parent, noSignerText 
   }
 
   const getSignature = () => {
-    if (!normalizedSigner.signature) {
+    if (!signatureSrc) {
       if (!signer || parent || printing) return null;
       if (isCurrentUser) {
         return (
@@ -30,7 +40,7 @@ export default function Signature({ signer, isCurrentUser, parent, noSignerText 
           height: printing ? { xs: 37, sm: 50 } : { xs: 75, sm: 100 },
         }}>
           <img
-            src={normalizedSigner.signature.url}
+            src={signatureSrc}
             height="100%"
             width="100%"
           />

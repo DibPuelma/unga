@@ -34,7 +34,7 @@ import { useInterval } from 'src/hooks/useInterval';
 import AdvancementCalculationService from 'services/AdvancementCalculationService';
 import { useReactToPrint } from 'react-to-print';
 import PlansService from 'services/PlansService';
-import { serializeForNextProps } from 'src/helpers/businessLogic';
+import { pickSigner, serializeForNextProps } from 'src/helpers/businessLogic';
 
 export async function getServerSideProps(context) {
   const [isAuthorizedValue, returnValue, session] = await isAuthorized(context, PlansService.INSTITUTIONAL_ONLY);
@@ -95,8 +95,8 @@ export async function getServerSideProps(context) {
       mainTeacher,
       institution: updatedInstitution,
       currentUser: user,
-      principal: principals.length > 0 ? principals[0] : null,
-      coordinator: coordinators.length > 0 ? coordinators[0] : null,
+      principal: pickSigner(principals, user),
+      coordinator: pickSigner(coordinators, user),
       reportOptions,
       attendanceByDate: attendanceByDateAndMonth.analyticsByDate,
       activeTimePeriods,
