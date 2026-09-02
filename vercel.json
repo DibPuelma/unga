@@ -27,6 +27,10 @@
     {
       "path": "/api/payments/retry-failed",
       "schedule": "30 5 * * *"
+    },
+    {
+      "path": "/api/cron/cloudinary-cleanup",
+      "schedule": "0 4 * * *"
     }
   ]
 }

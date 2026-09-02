@@ -1,4 +1,5 @@
 import prisma from './prisma';
+import CloudinaryService from 'services/CloudinaryService';
 
 const parseBirthDate = (birthDate) => {
   if (!birthDate) return null;
@@ -81,6 +82,11 @@ export const updateStudent = async (id, data) => {
     updateData.profilePicture = normalizeProfilePictureForWrite(data.profilePicture);
   }
 
+  // Snapshot the picture we are about to overwrite so we can drop it afterwards.
+  const previous = data.profilePicture !== undefined
+    ? await prisma.students.findUnique({ where: { id }, select: { profilePicture: true } })
+    : null;
+
   const student = await prisma.students.update({
     where: { id },
     data: updateData,
@@ -88,6 +94,10 @@ export const updateStudent = async (id, data) => {
       Classes: true,
     },
   });
+
+  if (previous) {
+    await CloudinaryService.destroyIfReplaced(previous.profilePicture, student.profilePicture);
+  }
 
   return JSON.parse(JSON.stringify(withParsedProfilePicture({
     ...student,

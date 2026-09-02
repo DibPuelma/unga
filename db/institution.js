@@ -2,6 +2,7 @@ import prisma from './prisma';
 import { createBaseCoresForInstitution } from './core';
 import { createBaseLevelsOfAchievementForInstitution } from './levelsOfAchievement';
 import { EXISTING_FEATURES } from './feature';
+import CloudinaryService from 'services/CloudinaryService';
 
 const normalizeLogoForWrite = (logo) => {
   if (logo === undefined) return undefined;
@@ -194,6 +195,11 @@ export const updateInstitution = async (institutionId, {
     }
   }
 
+  // Snapshot the logo we are about to overwrite so we can drop it afterwards.
+  const previous = normalizedLogo !== undefined
+    ? await prisma.institutions.findUnique({ where: { id: institutionId }, select: { logo: true } })
+    : null;
+
   const institution = await prisma.institutions.update({
     where: { id: institutionId },
       data: {
@@ -209,6 +215,10 @@ export const updateInstitution = async (institutionId, {
         features,
     },
   });
+
+  if (previous) {
+    await CloudinaryService.destroyIfReplaced(previous.logo, institution.logo);
+  }
 
   return institution;
 }
