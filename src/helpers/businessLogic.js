@@ -195,6 +195,21 @@ export const serializeForAPI = (data) => {
   return JSON.parse(JSON.stringify(converted));
 }
 
+/**
+ * Picks who signs a report when an institution has more than one user for the same role
+ * (duplicated accounts for the same person are common), so the choice never depends on the
+ * order Postgres happens to return.
+ * @param {Array} candidates - Users with the role, e.g. getInstitutionPrincipals() result
+ * @param {Object} currentUser - The user viewing the report
+ * @returns {Object|null} - The signer, or null when there are no candidates
+ */
+export const pickSigner = (candidates, currentUser) => {
+  if (!candidates?.length) return null;
+  return candidates.find((candidate) => candidate.id === currentUser?.id)
+    || candidates.find((candidate) => candidate.signature)
+    || candidates[0];
+}
+
 export const getClassroomsIdsByLevelId = (user, institution) => {
   if (!user || !institution || !institution.classrooms) return {};
 

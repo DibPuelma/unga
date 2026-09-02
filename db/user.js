@@ -209,6 +209,7 @@ export const getInstitutionPrincipals = async (institutionId) => {
       institutionId,
       deletedAt: null,
     },
+    orderBy: { createdAt: 'asc' },
   });
 
   return users.map(withParsedAssets);
@@ -221,6 +222,7 @@ export const getInstitutionCoordinators = async (institutionId) => {
       institutionId,
       deletedAt: null,
     },
+    orderBy: { createdAt: 'asc' },
   });
 
   return users.map(withParsedAssets);
