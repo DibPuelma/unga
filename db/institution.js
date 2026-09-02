@@ -175,12 +175,21 @@ export const updateInstitution = async (institutionId, {
 }) => {
   const normalizedLogo = normalizeLogoForWrite(logo);
 
+  let mergedConfiguration;
+
   if (configuration) {
-    if (configuration.employeesRoles?.coordinator) {
-      const institution = await getInstitution(institutionId);
-      const oldCoordinatorId = institution?.configuration?.employeesRoles?.coordinator;
-      
-      if (oldCoordinatorId) {
+    const currentInstitution = await getInstitution(institutionId);
+    const currentConfiguration = currentInstitution?.configuration || {};
+
+    // Each configuration tab saves only its own section, so merge with what is
+    // already stored instead of replacing the whole JSON.
+    mergedConfiguration = { ...currentConfiguration, ...configuration };
+
+    const newCoordinatorId = configuration.employeesRoles?.coordinator;
+    if (newCoordinatorId) {
+      const oldCoordinatorId = currentConfiguration.employeesRoles?.coordinator;
+
+      if (oldCoordinatorId && oldCoordinatorId !== newCoordinatorId) {
         await prisma.user.update({
           where: { id: oldCoordinatorId },
           data: { role: 'teacher' },
@@ -188,7 +197,7 @@ export const updateInstitution = async (institutionId, {
       }
 
       await prisma.user.update({
-        where: { id: configuration.employeesRoles.coordinator },
+        where: { id: newCoordinatorId },
         data: { role: 'coordinator' },
       });
     }
@@ -197,7 +206,7 @@ export const updateInstitution = async (institutionId, {
   const institution = await prisma.institutions.update({
     where: { id: institutionId },
       data: {
-        configuration,
+        configuration: mergedConfiguration,
         name,
         address,
         code,

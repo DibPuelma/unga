@@ -22,7 +22,10 @@ export async function getServerSideProps(context) {
   const teachers = await getInstitutionTeachers(institutionId);
   const coordinators = await getInstitutionCoordinators(institutionId);
   const principals = await getInstitutionPrincipals(institutionId);
-  const principal = principals.length > 0 ? principals[0] : null;
+  const configuredPrincipalId = institutionWithConfigs?.configuration?.employeesRoles?.principal?.id;
+  const principal = principals.find(({ id }) => id === configuredPrincipalId)
+    || principals[0]
+    || null;
   const allEmployees = [...teachers, ...coordinators];
   const allClassrooms = await getClassesByInstitution(institutionId);
   const allLevels = await getNonHeterogeneousLevels();
