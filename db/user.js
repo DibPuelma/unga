@@ -3,6 +3,7 @@ import prisma from './prisma';
 import moment from 'moment-timezone';
 import { grantSignupCredits } from './credits';
 import SendAddRoleToUserSlackMessage from 'commands/slack/sendAddRoleToUserSlackMessage';
+import CloudinaryService from 'services/CloudinaryService';
 import SendNewUserSlackMessage from 'commands/slack/sendNewUserSlackMessage';
 
 const normalizeInstitutionLogoForRead = (institution) => {
@@ -163,10 +164,24 @@ export const updateUser = async (userId, data) => {
     updateData.signature = normalizeAssetForWrite(data.signature);
   }
 
+  // Snapshot the assets we are about to overwrite so we can drop them afterwards.
+  const replacesAsset = data.profilePicture !== undefined || data.signature !== undefined;
+  const previousAssets = replacesAsset
+    ? await prisma.user.findUnique({
+        where: { id: userId },
+        select: { profilePicture: true, signature: true },
+      })
+    : null;
+
   const updatedUser = await prisma.user.update({
     where: { id: userId },
     data: updateData,
   });
+
+  if (previousAssets) {
+    await CloudinaryService.destroyIfReplaced(previousAssets.profilePicture, updatedUser.profilePicture);
+    await CloudinaryService.destroyIfReplaced(previousAssets.signature, updatedUser.signature);
+  }
 
   if (data.role) {
     new SendAddRoleToUserSlackMessage(updatedUser).perform();
